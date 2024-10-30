@@ -19,7 +19,8 @@ pygame.display.set_caption('Pokémon Beat em Up')
 
 # Inicia assets
 
-background = pygame.image.load('PyGame-Beat-Em-Up/assets/backgroundexemplo.jpg').convert()
+image = pygame.image.load('PyGame-Beat-Em-Up/assets/backgroundexemplo.jpg').convert()
+image = pygame.transform.scale(image, (altura, largura))
 
 # Loop de jogo
 
@@ -36,10 +37,9 @@ while game:
                 ataque = True
             elif event.key == pygame.K_w or event.key == pygame.K_a or event.key == pygame.K_s or event.key == pygame.K_d:
                 andando = True
-    window.fill((255, 255, 255))
-    window.blit(background, (0, 0))
-    pygame.display.update()
-    
+    window.fill((0, 0, 0))  # Preenche com a cor preta
+    window.blit(image, (0, 0))
+    pygame.display.update() # Mostra o novo frame para o jogador
 
 # Fecha o jogo
 
