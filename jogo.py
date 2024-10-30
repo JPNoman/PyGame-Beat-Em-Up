@@ -1,9 +1,15 @@
 # Inicia o jogo
+
 import pygame
 pygame.init()
+
+# Abre a janela
+
 window = pygame.display.set_mode((600, 300))
-pygame.display.set_caption('Pokémon Bet em Up')
+pygame.display.set_caption('Pokémon Beat em Up')
+
 # Loop de jogo
+
 game = True
 while game:
     for event in pygame.event.get():
@@ -15,4 +21,5 @@ while game:
     pygame.display.update()
 
 # Fecha o jogo
+
 pygame.quit()
