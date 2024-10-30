@@ -11,9 +11,8 @@ while game:
             game = False
         if event.type == pygame.KEYUP:
             game = False
-  window.fill((255, 255, 255))
-  pygame.display.update()
-
+    window.fill((255, 255, 255))
+    pygame.display.update()
 
 # Fecha o jogo
 pygame.quit()
