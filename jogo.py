@@ -12,8 +12,8 @@ largura = 300 ## O tamanho da janela tem que ser ajustado pro tamanho certo aind
 altura = 600
 fps = 60
 clock = pygame.time.Clock()
-altura_player = 200
-largura_player = 200
+altura_player = 120
+largura_player = 120
 
 # Define o jogador
 
@@ -22,8 +22,8 @@ class player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         self.image = assets['sprite_provisoria']
         self.rect = self.image.get_rect()
-        self.rect.centerx = largura / 2
-        self.rect.bottom = altura -300
+        self.rect.centerx = largura 
+        self.rect.bottom = altura 
         self.speedx = 0
         self.speedy = 0
         self.groups = groups
@@ -42,8 +42,8 @@ class player(pygame.sprite.Sprite):
             self.rect.left = 0 
         if self.rect.bottom > largura:
             self.rect.bottom = largura
-        if self.rect.left < 0:
-            self.rect.left = 0
+        if self.rect.top < 0:
+            self.rect.top = 0
 
 # Abre a janela
 
@@ -79,8 +79,6 @@ all_sprites.add(jogador)
 game = True
 while game:
     clock.tick(fps)
-    ataque = False
-    andando = False
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
