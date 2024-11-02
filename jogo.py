@@ -52,12 +52,12 @@ pygame.display.set_caption('Pokémon Beat em Up')
 
 # Inicia assets
 
-image = pygame.image.load('PyGame-Beat-Em-Up/assets/backgroundexemplo.jpg').convert()
+image = pygame.image.load('assets/backgroundexemplo.jpg').convert()
 image = pygame.transform.scale(image, (altura, largura))
 
 # Sons do jogo
 
-pygame.mixer.music.load('PyGame-Beat-Em-Up/assets/Battle!.mp3')
+pygame.mixer.music.load('assets/Battle!.mp3')
 pygame.mixer.music.set_volume(0.4)
 
 pygame.mixer.music.play(loops=-1)
@@ -67,7 +67,7 @@ groups = {}
 all_sprites = pygame.sprite.Group()
 groups['all_sprites'] = all_sprites
 assets = {}
-assets['sprite_provisoria'] = pygame.image.load('PyGame-Beat-Em-Up/assets/sprite_provisoria.webp').convert()
+assets['sprite_provisoria'] = pygame.image.load('assets/sprite_provisoria.webp').convert()
 assets['sprite_provisoria'] = pygame.transform.scale(assets['sprite_provisoria'], (largura_player, altura_player)) # Tamanho do player
 # Cria o player
 
