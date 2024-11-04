@@ -16,13 +16,14 @@ altura_player = 120
 largura_player = 120
 STILL = 0
 img_dir = path.join(path.dirname(__file__), 'assets')
+direita = False
 
 # Define o jogador
 
 class player(pygame.sprite.Sprite):
     def __init__(self, groups, player_sheet):
         pygame.sprite.Sprite.__init__(self)
-        player_sheet = pygame.transform.scale(player_sheet, (190, 120))
+        player_sheet = pygame.transform.scale(player_sheet, (190, 100))
         spritesheet = load_spritesheet(player_sheet, 1, 5)
         self.animations = {
             STILL: spritesheet[0:4]
@@ -47,6 +48,9 @@ class player(pygame.sprite.Sprite):
     def update(self):
         # Verifica o tick atual.
         now = pygame.time.get_ticks()
+
+        if direita:
+            self.image = pygame.transform.flip(self.animation[self.frame], True, False)
 
         # Verifica quantos ticks se passaram desde a ultima mudança de frame.
         elapsed_ticks = now - self.last_update
@@ -73,9 +77,11 @@ class player(pygame.sprite.Sprite):
             # Atualiza os detalhes de posicionamento
             self.rect = self.image.get_rect()
             self.rect.center = center
+        
         # Atualização da posição do jogador
         self.rect.x += self.speedx
         self.rect.y += self.speedy
+        
 
         # Mantem dentro da tela
         ## Esses parametros tem que ser mudados depois pra o player só ficar no chão
@@ -198,8 +204,10 @@ while game:
                 # Dependendo da tecla, altera a velocidade.
                 if event.key == pygame.K_a:
                     jogador.speedx -= 8
+                    direita = False
                 if event.key == pygame.K_d:
                     jogador.speedx += 8
+                    direita = True
                 if event.key == pygame.K_w:
                     jogador.speedy -= 8
                 if event.key == pygame.K_s:
