@@ -153,8 +153,9 @@ def game_screen(screen):
         all_sprites.update()
         
         # A cada loop, redesenha o fundo e os sprites
-        screen.fill(BLACK)
+        screen.fill(WHITE)
         all_sprites.draw(screen)
+        
 
         # Depois de desenhar tudo, inverte o display.
         pygame.display.flip()
