@@ -1,5 +1,3 @@
-# -*- coding: utf-8 -*-
-
 # Importando as bibliotecas necessárias.
 import pygame
 import random
@@ -62,7 +60,7 @@ class Player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         
         # Aumenta o tamanho do spritesheet para ficar mais fácil de ver
-        player_sheet = pygame.transform.scale(player_sheet, (170, 120))
+        player_sheet = pygame.transform.scale(player_sheet, (190, 120))
 
         # Define sequências de sprites de cada animação
         spritesheet = load_spritesheet(player_sheet, 1, 5)
