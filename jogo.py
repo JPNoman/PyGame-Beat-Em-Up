@@ -74,8 +74,6 @@ assets['sprite_provisoria'] = pygame.transform.scale(assets['sprite_provisoria']
 jogador = player(groups, assets)
 all_sprites.add(jogador)
 
-image = pygame.image.load('assets/background.png').convert()
-image = pygame.transform.scale(image, (600, 300))
 # Loop de jogo
 
 game = True
@@ -84,11 +82,37 @@ while game:
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             game = False
-        if event.type == pygame.KEYUP:
-            game = False
-    window.fill((255, 255, 255))
-    pygame.display.update()
-
+# Só verifica o teclado se está no estado de jogo
+        if game == True:
+            # Verifica se apertou alguma tecla.
+            if event.type == pygame.KEYDOWN:
+                # Dependendo da tecla, altera a velocidade.
+                if event.key == pygame.K_a:
+                    jogador.speedx -= 8
+                if event.key == pygame.K_d:
+                    jogador.speedx += 8
+                if event.key == pygame.K_w:
+                    jogador.speedy -= 8
+                if event.key == pygame.K_s:
+                    jogador.speedy += 8
+            # Verifica se soltou alguma tecla.
+            if event.type == pygame.KEYUP:
+                # Dependendo da tecla, altera a velocidade.
+                if event.key == pygame.K_a:
+                    jogador.speedx += 8
+                if event.key == pygame.K_d:
+                    jogador.speedx -= 8
+                if event.key == pygame.K_w:
+                    jogador.speedy += 8
+                if event.key == pygame.K_s:
+                    jogador.speedy -= 8
+    # ----- Gera saídas
+    all_sprites.update()
+    window.fill((0, 0, 0))  # Preenche com a cor preta
+    window.blit(image, (0, 0))
+    all_sprites.draw(window)
+    pygame.display.update()  # Mostra o novo frame para o jogador
+    
 # Fecha o jogo
 
 pygame.quit()
