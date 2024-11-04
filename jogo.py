@@ -176,7 +176,7 @@ groups = {}
 all_sprites = pygame.sprite.Group()
 groups['all_sprites'] = all_sprites
 assets = {}
-assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert()
+assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
 # Cria o player
 
