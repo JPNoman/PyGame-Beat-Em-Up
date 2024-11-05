@@ -45,6 +45,10 @@ class player(pygame.sprite.Sprite):
         # Controle de ticks de animação: troca de imagem a cada self.frame_ticks milissegundos.
         self.frame_ticks = 300
 
+        # Só será possível atirar uma vez a cada 500 milissegundos
+        self.last_shot = pygame.time.get_ticks()
+        self.shoot_ticks = 500
+
     def update(self):
         # Verifica o tick atual.
         now = pygame.time.get_ticks()
@@ -93,6 +97,36 @@ class player(pygame.sprite.Sprite):
             self.rect.bottom = largura
         if self.rect.top < 0:
             self.rect.top = 0
+    
+    def atacar(self):
+        # Verifica se pode atacar
+        now = pygame.time.get_ticks()
+        # Verifica quantos ticks se passaram desde o último ataque.
+        elapsed_ticks = now - self.last_shot
+
+        # Se já pode atacar novamente...
+        if elapsed_ticks > self.shoot_ticks:
+            # Marca o tick da nova imagem.
+            self.last_shot = now
+            ataque = golpe(self.assets, self.rect.bottom, self.rect.centerx) ######### Mudar esses parametros do asteroide
+            self.groups['all_sprites'].add(ataque)
+            self.groups['all_attacks'].add(ataque)
+            self.assets['ice.mp3'].play()
+
+
+class golpe(pygame.sprite.Sprite):
+    # Construtor da classe.
+    def __init__(self, assets, bottom, centerx):
+        # Construtor da classe mãe (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = assets['placeholder']
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+
+        # Coloca no lugar inicial definido em x, y do constutor
+        self.rect.centerx = centerx
+        self.rect.bottom = bottom
 
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
 # É necessário definir quantos sprites estão presentes em cada linha e coluna.
@@ -170,6 +204,7 @@ pygame.display.set_caption('Pokémon Beat em Up')
 image = pygame.image.load('assets/backgroundexemplo.jpg').convert()
 image = pygame.transform.scale(image, (altura, largura))
 
+
 # Sons do jogo
 
 pygame.mixer.music.load('assets/Battle!.mp3')
@@ -180,10 +215,15 @@ pygame.mixer.music.play(loops=-1)
 # Definindo grupos de sprites
 groups = {}
 all_sprites = pygame.sprite.Group()
+all_attacks = pygame.sprite.Group()
 groups['all_sprites'] = all_sprites
+groups['all_attacks'] = all_attacks
 assets = {}
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
+assets['placeholder'] = pygame.image.load('assets/placeholder.png').convert_alpha()
+assets['placeholder'] = pygame.transform.scale(assets['placeholder'], (largura_player, altura_player))
+assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
 # Cria o player
 
 jogador = player(groups, assets['froslass'])
@@ -212,6 +252,8 @@ while game:
                     jogador.speedy -= 8
                 if event.key == pygame.K_s:
                     jogador.speedy += 8
+                if event.key == pygame.K_SPACE:
+                    jogador.atacar()
             # Verifica se soltou alguma tecla.
             if event.type == pygame.KEYUP:
                 # Dependendo da tecla, altera a velocidade.
