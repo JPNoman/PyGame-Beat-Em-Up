@@ -109,7 +109,9 @@ class player(pygame.sprite.Sprite):
         if elapsed_ticks > self.shoot_ticks:
             # Marca o tick da nova imagem.
             self.last_shot = now
-            ataque = golpe(self.assets, self.rect.bottom, self.rect.centerx) ######### Mudar esses parametros do asteroide
+            ataque = golpe(self.assets, self.rect.bottom, self.rect.centerx - 40) ######### Mudar esses parametros do asteroide
+            if direita:
+                ataque = golpe(self.assets, self.rect.bottom, self.rect.centerx + 40)
             self.groups['all_sprites'].add(ataque)
             self.groups['all_attacks'].add(ataque)
             self.assets['ice.mp3'].play()
@@ -128,6 +130,15 @@ class golpe(pygame.sprite.Sprite):
         # Coloca no lugar inicial definido em x, y do constutor
         self.rect.centerx = centerx
         self.rect.bottom = bottom
+
+        # Grava quando o ataque é criado
+        self.last_shot = pygame.time.get_ticks()
+    
+    def update(self):
+        now = pygame.time.get_ticks()
+        elapsed_ticks = now - self.last_shot
+        if elapsed_ticks > 300:
+            self.kill()
 
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
 # É necessário definir quantos sprites estão presentes em cada linha e coluna.
