@@ -43,7 +43,7 @@ class player(pygame.sprite.Sprite):
         # Guarda o tick da primeira imagem
         self.last_update = pygame.time.get_ticks()
         # Controle de ticks de animação: troca de imagem a cada self.frame_ticks milissegundos.
-        self.frame_ticks = 300
+        self.frame_ticks = 150  # Prestar atenção nesse parametro, pode mudar a velocidade do jogo
 
         # Só será possível atirar uma vez a cada 500 milissegundos
         self.last_shot = pygame.time.get_ticks()
@@ -77,10 +77,11 @@ class player(pygame.sprite.Sprite):
             # Armazena a posição do centro da imagem
             center = self.rect.center
             # Atualiza imagem atual
-            self.image = self.animation[self.frame]
-            # Atualiza os detalhes de posicionamento
-            self.rect = self.image.get_rect()
-            self.rect.center = center
+            if not direita:
+                self.image = self.animation[self.frame]
+                # Atualiza os detalhes de posicionamento
+                self.rect = self.image.get_rect()
+                self.rect.center = center
         
         # Atualização da posição do jogador
         self.rect.x += self.speedx
