@@ -225,8 +225,8 @@ class Enemy(pygame.sprite.Sprite):
             direction_y = (player_y - enemy_y) / distance
 
             # Ajustar a velocidade
-            self.speedx = direction_x * 3
-            self.speedy = direction_y * 3
+            self.speedx = direction_x * 1.5
+            self.speedy = direction_y * 1.5
 
         # Atualizar posição
         self.rect.x += self.speedx
@@ -359,19 +359,15 @@ while game:
             if event.type == pygame.KEYDOWN:
                 # Dependendo da tecla, altera a velocidade do jogador e ataque.
                 if event.key == pygame.K_a:
-                    jogador.speedx -= 6
-                    ataque_atual.speedx -= 6
+                    jogador.speedx -= 5
                     direita = False
                 if event.key == pygame.K_d:
-                    jogador.speedx += 6
-                    ataque_atual.speedx += 6
+                    jogador.speedx += 5
                     direita = True
                 if event.key == pygame.K_w:
-                    jogador.speedy -= 6
-                    ataque_atual.speedy -= 6
+                    jogador.speedy -= 5
                 if event.key == pygame.K_s:
-                    jogador.speedy += 6
-                    ataque_atual.speedy += 6
+                    jogador.speedy += 5
                 if event.key == pygame.K_SPACE:
                     jogador.atacar()
                 if event.key == pygame.K_ESCAPE:
@@ -380,17 +376,13 @@ while game:
             if event.type == pygame.KEYUP:
                 # Dependendo da tecla, altera a velocidade do jogador e ataque.
                 if event.key == pygame.K_a:
-                    jogador.speedx += 6
-                    ataque_atual.speedx += 6
+                    jogador.speedx += 5
                 if event.key == pygame.K_d:
-                    jogador.speedx -= 6
-                    ataque_atual.speedx -= 6
+                    jogador.speedx -= 5
                 if event.key == pygame.K_w:
-                    jogador.speedy += 6
-                    ataque_atual.speedy += 6
+                    jogador.speedy += 5
                 if event.key == pygame.K_s:
-                    jogador.speedy -= 6
-                    ataque_atual.speedy -= 6
+                    jogador.speedy -= 5
     # ----- Gera saídas
     all_sprites.update()
     window.fill((0, 0, 0))  # Preenche com a cor preta 
