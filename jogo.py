@@ -3,6 +3,7 @@
 import pygame
 pygame.init()
 import random
+import math
 import time
 from os import path
 
@@ -14,7 +15,10 @@ fps = 60
 clock = pygame.time.Clock()
 altura_player = 120
 largura_player = 120
+altura_inimigo = 120
+largura_inimigo = 120
 STILL = 0
+WALK = 'walk'
 img_dir = path.join(path.dirname(__file__), 'assets')
 
 # Define o jogador
@@ -85,6 +89,100 @@ class player(pygame.sprite.Sprite):
             self.rect.left = 0 
         if self.rect.bottom > largura:
             self.rect.bottom = largura
+        if self.rect.top < 0:
+            self.rect.top = 0
+
+
+class Enemy(pygame.sprite.Sprite):
+    def _init_(self, img, enemy_sheet, player):
+        # Construtor da classe mãe (Sprite).
+        pygame.sprite.Sprite._init_(self)
+
+        # Carregar e redimensionar o spritesheet
+        enemy_sheet = pygame.transform.scale(enemy_sheet, (190, 120))
+        self.spritesheet = self.load_spritesheet(enemy_sheet, 1, 8)  # Ajuste para 8 frames
+
+        # Configuração da animação
+        self.animation = {
+            WALK: self.spritesheet
+        }
+        self.state = WALK
+        self.frame = 0
+        self.last_update = pygame.time.get_ticks()
+        self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
+
+        # Inicializar a imagem e o retângulo do sprite
+        self.image = self.animation[self.state][self.frame]
+        self.rect = self.image.get_rect()
+
+        # Posicionar o inimigo em uma borda aleatória
+        spawn_edge = random.choice(["top", "bottom", "left", "right"])
+        if spawn_edge == "top":
+            self.rect.x = random.randint(0, largura - self.rect.width)
+            self.rect.y = -self.rect.height
+        elif spawn_edge == "bottom":
+            self.rect.x = random.randint(0, largura - self.rect.width)
+            self.rect.y = altura
+        elif spawn_edge == "left":
+            self.rect.x = -self.rect.width
+            self.rect.y = random.randint(0, altura - self.rect.height)
+        elif spawn_edge == "right":
+            self.rect.x = largura
+            self.rect.y = random.randint(0, altura - self.rect.height)
+
+        self.speedx = 0
+        self.speedy = 0
+        self.player = player  # Referência ao jogador para seguir
+
+    def load_spritesheet(self, sheet, rows, cols):
+        # Função para dividir o spritesheet em uma lista de imagens
+        sprites = []
+        sheet_rect = sheet.get_rect()
+        frame_width = sheet_rect.width // cols
+        frame_height = sheet_rect.height // rows
+
+        for row in range(rows):
+            for col in range(cols):
+                frame_rect = pygame.Rect(col * frame_width, row * frame_height, frame_width, frame_height)
+                image = sheet.subsurface(frame_rect)
+                sprites.append(image)
+        return sprites
+
+    def update(self):
+        # Controle de animação
+        now = pygame.time.get_ticks()
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame = (self.frame + 1) % len(self.animation[self.state])
+            self.image = self.animation[self.state][self.frame]
+
+        # Seguir o jogador
+        player_x, player_y = self.player.rect.centerx, self.player.rect.centery
+        enemy_x, enemy_y = self.rect.centerx, self.rect.centery
+
+        # Calcular a distância entre o inimigo e o jogador
+        distance = math.sqrt((player_x - enemy_x)*2 + (player_y - enemy_y)*2)
+
+        if distance != 0:
+            # Normalizar o vetor de direção
+            direction_x = (player_x - enemy_x) / distance
+            direction_y = (player_y - enemy_y) / distance
+
+            # Ajustar a velocidade
+            self.speedx = direction_x * 3
+            self.speedy = direction_y * 3
+
+        # Atualizar posição
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+
+        # Manter dentro da tela (ajuste para o chão, se necessário)
+        if self.rect.right > largura:
+            self.rect.right = largura
+        if self.rect.left < 0:
+            self.rect.left = 0
+        if self.rect.bottom > altura:
+            self.rect.bottom = altura
         if self.rect.top < 0:
             self.rect.top = 0
 
@@ -178,10 +276,20 @@ groups['all_sprites'] = all_sprites
 assets = {}
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
-# Cria o player
+assets['Meowth'] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
+assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) 
 
+# Cria o player
 jogador = player(groups, assets['froslass'])
 all_sprites.add(jogador)
+
+# Create the enemies
+enemies = pygame.sprite.Group()
+for _ in range(5):  # Adjust the number of enemies
+    enemy_img = assets['Meowth']
+    new_enemy = Enemy(enemy_img, assets['Meowth'], jogador)  # Pass the player to the enemy
+    all_sprites.add(new_enemy)
+    enemies.add(new_enemy)
 
 # Loop de jogo
 
