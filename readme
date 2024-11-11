@@ -4,7 +4,7 @@ CRIAR O REPOSITORIO:
 
 usando o terminal do git bash, navegue até a pasta onde deseja criar o repositorio e digite:
 
-git clone https://github.com/Correia1500/Pygame---Scavenger-Sprint.git
+git clone https://github.com/JPNoman/PyGame-Beat-Em-Up.git
 
 CRIA SUA BRANCH:
 
