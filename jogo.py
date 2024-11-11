@@ -20,13 +20,14 @@ largura_inimigo = 120
 STILL = 0
 WALK = 'walk'
 img_dir = path.join(path.dirname(__file__), 'assets')
+direita = False
 
 # Define o jogador
 
 class player(pygame.sprite.Sprite):
     def __init__(self, groups, player_sheet):
         pygame.sprite.Sprite.__init__(self)
-        player_sheet = pygame.transform.scale(player_sheet, (190, 120))
+        player_sheet = pygame.transform.scale(player_sheet, (190, 100))
         spritesheet = load_spritesheet(player_sheet, 1, 5)
         self.animations = {
             STILL: spritesheet[0:4]
@@ -46,11 +47,18 @@ class player(pygame.sprite.Sprite):
         # Guarda o tick da primeira imagem
         self.last_update = pygame.time.get_ticks()
         # Controle de ticks de animação: troca de imagem a cada self.frame_ticks milissegundos.
-        self.frame_ticks = 300
+        self.frame_ticks = 150  # Prestar atenção nesse parametro, pode mudar a velocidade do jogo
+
+        # Só será possível atirar uma vez a cada 500 milissegundos
+        self.last_shot = pygame.time.get_ticks()
+        self.shoot_ticks = 500
 
     def update(self):
         # Verifica o tick atual.
         now = pygame.time.get_ticks()
+
+        if direita:
+            self.image = pygame.transform.flip(self.animation[self.frame], True, False)
 
         # Verifica quantos ticks se passaram desde a ultima mudança de frame.
         elapsed_ticks = now - self.last_update
@@ -73,13 +81,16 @@ class player(pygame.sprite.Sprite):
             # Armazena a posição do centro da imagem
             center = self.rect.center
             # Atualiza imagem atual
-            self.image = self.animation[self.frame]
-            # Atualiza os detalhes de posicionamento
-            self.rect = self.image.get_rect()
-            self.rect.center = center
+            if not direita:
+                self.image = self.animation[self.frame]
+                # Atualiza os detalhes de posicionamento
+                self.rect = self.image.get_rect()
+                self.rect.center = center
+        
         # Atualização da posição do jogador
         self.rect.x += self.speedx
         self.rect.y += self.speedy
+        
 
         # Mantem dentro da tela
         ## Esses parametros tem que ser mudados depois pra o player só ficar no chão
@@ -91,6 +102,47 @@ class player(pygame.sprite.Sprite):
             self.rect.bottom = largura
         if self.rect.top < 0:
             self.rect.top = 0
+    
+    def atacar(self):
+        # Verifica se pode atacar
+        now = pygame.time.get_ticks()
+        # Verifica quantos ticks se passaram desde o último ataque.
+        elapsed_ticks = now - self.last_shot
+
+        # Se já pode atacar novamente...
+        if elapsed_ticks > self.shoot_ticks:
+            # Marca o tick da nova imagem.
+            self.last_shot = now
+            ataque = golpe(self.assets, self.rect.bottom, self.rect.centerx - 40) ######### Mudar esses parametros do asteroide
+            if direita:
+                ataque = golpe(self.assets, self.rect.bottom, self.rect.centerx + 40)
+            self.groups['all_sprites'].add(ataque)
+            self.groups['all_attacks'].add(ataque)
+            self.assets['ice.mp3'].play()
+
+
+class golpe(pygame.sprite.Sprite):
+    # Construtor da classe.
+    def __init__(self, assets, bottom, centerx):
+        # Construtor da classe mãe (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = assets['placeholder']
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+
+        # Coloca no lugar inicial definido em x, y do constutor
+        self.rect.centerx = centerx
+        self.rect.bottom = bottom
+
+        # Grava quando o ataque é criado
+        self.last_shot = pygame.time.get_ticks()
+    
+    def update(self):
+        now = pygame.time.get_ticks()
+        elapsed_ticks = now - self.last_shot
+        if elapsed_ticks > 300:
+            self.kill()
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -262,6 +314,7 @@ pygame.display.set_caption('Pokémon Beat em Up')
 image = pygame.image.load('assets/background.png').convert()
 image = pygame.transform.scale(image, (altura, largura))
 
+
 # Sons do jogo
 
 pygame.mixer.music.load('assets/Battle!.mp3')
@@ -272,12 +325,17 @@ pygame.mixer.music.play(loops=-1)
 # Definindo grupos de sprites
 groups = {}
 all_sprites = pygame.sprite.Group()
+all_attacks = pygame.sprite.Group()
 groups['all_sprites'] = all_sprites
+groups['all_attacks'] = all_attacks
 assets = {}
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
 assets['Meowth'] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
 assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) 
+assets['placeholder'] = pygame.image.load('assets/placeholder.png').convert_alpha()
+assets['placeholder'] = pygame.transform.scale(assets['placeholder'], (largura_player, altura_player))
+assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
@@ -306,12 +364,16 @@ while game:
                 # Dependendo da tecla, altera a velocidade.
                 if event.key == pygame.K_a:
                     jogador.speedx -= 8
+                    direita = False
                 if event.key == pygame.K_d:
                     jogador.speedx += 8
+                    direita = True
                 if event.key == pygame.K_w:
                     jogador.speedy -= 8
                 if event.key == pygame.K_s:
                     jogador.speedy += 8
+                if event.key == pygame.K_SPACE:
+                    jogador.atacar()
             # Verifica se soltou alguma tecla.
             if event.type == pygame.KEYUP:
                 # Dependendo da tecla, altera a velocidade.
