@@ -14,9 +14,9 @@ altura = 600
 fps = 60
 clock = pygame.time.Clock()
 altura_player = 120
-largura_player = 120
-altura_inimigo = 120
-largura_inimigo = 120
+largura_player = 200
+altura_inimigo = 100
+largura_inimigo = 240
 STILL = 0
 WALK = 'walk'
 img_dir = path.join(path.dirname(__file__), 'assets')
@@ -27,7 +27,7 @@ direita = True # Estabelece pra que lado o jogador está olhando no começo do j
 class player(pygame.sprite.Sprite):
     def __init__(self, groups, player_sheet):
         pygame.sprite.Sprite.__init__(self)
-        player_sheet = pygame.transform.scale(player_sheet, (190, 100))
+        player_sheet = pygame.transform.scale(player_sheet, (largura_player, altura_player))
         spritesheet = load_spritesheet(player_sheet, 1, 5)
         self.animations = { # Estabelece possiveis loops de animação
             STILL: spritesheet[0:4]
@@ -155,7 +155,7 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
 
         # Carregar e redimensionar o spritesheet
-        enemy_sheet = pygame.transform.scale(enemy_sheet, (190, 120))
+        enemy_sheet = pygame.transform.scale(enemy_sheet, (largura_inimigo, altura_inimigo))
         self.spritesheet = self.load_spritesheet(enemy_sheet, 1, 8)  # Ajuste para 8 frames
 
         # Configuração da animação
@@ -231,16 +231,6 @@ class Enemy(pygame.sprite.Sprite):
         # Atualizar posição
         self.rect.x += self.speedx
         self.rect.y += self.speedy
-
-        # Manter dentro da tela (ajuste para o chão, se necessário)
-        if self.rect.right > largura:
-            self.rect.right = largura
-        if self.rect.left < 0:
-            self.rect.left = 0
-        if self.rect.bottom > altura:
-            self.rect.bottom = altura
-        if self.rect.top < 0:
-            self.rect.top = 0
 
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
 # É necessário definir quantos sprites estão presentes em cada linha e coluna.
@@ -349,7 +339,7 @@ all_sprites.add(ataque_atual)
 
 # Cria inimigos
 enemies = pygame.sprite.Group()
-for _ in range(5):  # Ajusta a quantidade de inimigos
+for _ in range(1):  # Ajusta a quantidade de inimigos
     enemy_img = assets['Meowth']  # A imagem do inimigo
     new_enemy = Enemy(enemy_img, enemy_img, jogador)  # Passando a imagem do inimigo e o jogador
     all_sprites.add(new_enemy)
