@@ -20,7 +20,7 @@ largura_inimigo = 120
 STILL = 0
 WALK = 'walk'
 img_dir = path.join(path.dirname(__file__), 'assets')
-direita = False
+direita = True # Estabelece pra que lado o jogador está olhando no começo do jogo
 
 # Define o jogador
 
@@ -29,10 +29,10 @@ class player(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
         player_sheet = pygame.transform.scale(player_sheet, (190, 100))
         spritesheet = load_spritesheet(player_sheet, 1, 5)
-        self.animations = {
+        self.animations = { # Estabelece possiveis loops de animação
             STILL: spritesheet[0:4]
         }
-        self.state = STILL
+        self.state = STILL # Estabelece estado de animação inicial
         self.animation = self.animations[self.state]
         self.frame = 0
         self.image = self.animation[self.frame]
@@ -49,7 +49,7 @@ class player(pygame.sprite.Sprite):
         # Controle de ticks de animação: troca de imagem a cada self.frame_ticks milissegundos.
         self.frame_ticks = 150  # Prestar atenção nesse parametro, pode mudar a velocidade do jogo
 
-        # Só será possível atirar uma vez a cada 500 milissegundos
+        # Só será possível atacar uma vez a cada 500 milissegundos
         self.last_shot = pygame.time.get_ticks()
         self.shoot_ticks = 500
 
@@ -57,7 +57,7 @@ class player(pygame.sprite.Sprite):
         # Verifica o tick atual.
         now = pygame.time.get_ticks()
 
-        if direita:
+        if direita: # Inverte a sprite se o jogador está olhando para o outro lado
             self.image = pygame.transform.flip(self.animation[self.frame], True, False)
 
         # Verifica quantos ticks se passaram desde a ultima mudança de frame.
@@ -89,11 +89,10 @@ class player(pygame.sprite.Sprite):
         
         # Atualização da posição do jogador
         self.rect.x += self.speedx
-        self.rect.y += self.speedy
-        
+        self.rect.y += self.speedy 
 
         # Mantem dentro da tela
-        ## Esses parametros tem que ser mudados depois pra o player só ficar no chão
+        ## Esses parametros tem que ser mudados depois pra o player só ficar no chão quando a gente tiver um mapa definido
         if self.rect.right > altura:
             self.rect.right = altura
         if self.rect.left < 0:
@@ -120,6 +119,7 @@ class player(pygame.sprite.Sprite):
             self.groups['all_attacks'].add(ataque)
             self.assets['ice.mp3'].play()
 
+# Define um golpe básico
 
 class golpe(pygame.sprite.Sprite):
     # Construtor da classe.
@@ -134,6 +134,8 @@ class golpe(pygame.sprite.Sprite):
         # Coloca no lugar inicial definido em x, y do constutor
         self.rect.centerx = centerx
         self.rect.bottom = bottom
+        self.speedx = 0
+        self.speedy = 0
 
         # Grava quando o ataque é criado
         self.last_shot = pygame.time.get_ticks()
@@ -143,6 +145,8 @@ class golpe(pygame.sprite.Sprite):
         elapsed_ticks = now - self.last_shot
         if elapsed_ticks > 300:
             self.kill()
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
 
 
 class Enemy(pygame.sprite.Sprite):
@@ -286,8 +290,8 @@ def game_screen(screen):
         clock.tick(fps)
         
         # Processa os eventos (mouse, teclado, botão, etc).
-        for event in pygame.event.get():
-            
+        ## Eu ACHO que esse for é completamente desnecessário, mas vou deixar aí caso a gente precise no futuro
+        for event in pygame.event.get(): 
             # Verifica se foi fechado.
             if event.type == pygame.QUIT:
                 state = DONE
@@ -314,15 +318,15 @@ pygame.display.set_caption('Pokémon Beat em Up')
 image = pygame.image.load('assets/background.png').convert()
 image = pygame.transform.scale(image, (altura, largura))
 
-
 # Sons do jogo
+## Atualizar com música de menu, sound effects, etc
 
 pygame.mixer.music.load('assets/Battle!.mp3')
 pygame.mixer.music.set_volume(0.4)
-
 pygame.mixer.music.play(loops=-1)
 
-# Definindo grupos de sprites
+# Definindo grupos de sprites e assets
+
 groups = {}
 all_sprites = pygame.sprite.Group()
 all_attacks = pygame.sprite.Group()
@@ -340,6 +344,8 @@ assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
 # Cria o player
 jogador = player(groups, assets['froslass'])
 all_sprites.add(jogador)
+ataque_atual = golpe(assets,0,0)
+all_sprites.add(ataque_atual)
 
 # Create the enemies
 enemies = pygame.sprite.Group()
@@ -361,30 +367,40 @@ while game:
         if game == True:
             # Verifica se apertou alguma tecla.
             if event.type == pygame.KEYDOWN:
-                # Dependendo da tecla, altera a velocidade.
+                # Dependendo da tecla, altera a velocidade do jogador e ataque.
                 if event.key == pygame.K_a:
-                    jogador.speedx -= 8
+                    jogador.speedx -= 6
+                    ataque_atual.speedx -= 6
                     direita = False
                 if event.key == pygame.K_d:
-                    jogador.speedx += 8
+                    jogador.speedx += 6
+                    ataque_atual.speedx += 6
                     direita = True
                 if event.key == pygame.K_w:
-                    jogador.speedy -= 8
+                    jogador.speedy -= 6
+                    ataque_atual.speedy -= 6
                 if event.key == pygame.K_s:
-                    jogador.speedy += 8
+                    jogador.speedy += 6
+                    ataque_atual.speedy += 6
                 if event.key == pygame.K_SPACE:
                     jogador.atacar()
+                if event.key == pygame.K_ESCAPE:
+                    game = False
             # Verifica se soltou alguma tecla.
             if event.type == pygame.KEYUP:
-                # Dependendo da tecla, altera a velocidade.
+                # Dependendo da tecla, altera a velocidade do jogador e ataque.
                 if event.key == pygame.K_a:
-                    jogador.speedx += 8
+                    jogador.speedx += 6
+                    ataque_atual.speedx += 6
                 if event.key == pygame.K_d:
-                    jogador.speedx -= 8
+                    jogador.speedx -= 6
+                    ataque_atual.speedx -= 6
                 if event.key == pygame.K_w:
-                    jogador.speedy += 8
+                    jogador.speedy += 6
+                    ataque_atual.speedy += 6
                 if event.key == pygame.K_s:
-                    jogador.speedy -= 8
+                    jogador.speedy -= 6
+                    ataque_atual.speedy -= 6
     # ----- Gera saídas
     all_sprites.update()
     window.fill((0, 0, 0))  # Preenche com a cor preta 
