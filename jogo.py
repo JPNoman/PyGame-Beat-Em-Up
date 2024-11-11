@@ -146,9 +146,9 @@ class golpe(pygame.sprite.Sprite):
 
 
 class Enemy(pygame.sprite.Sprite):
-    def _init_(self, img, enemy_sheet, player):
+    def __init__(self, img, enemy_sheet, player):
         # Construtor da classe mãe (Sprite).
-        pygame.sprite.Sprite._init_(self)
+        super().__init__()
 
         # Carregar e redimensionar o spritesheet
         enemy_sheet = pygame.transform.scale(enemy_sheet, (190, 120))
@@ -213,7 +213,7 @@ class Enemy(pygame.sprite.Sprite):
         enemy_x, enemy_y = self.rect.centerx, self.rect.centery
 
         # Calcular a distância entre o inimigo e o jogador
-        distance = math.sqrt((player_x - enemy_x)*2 + (player_y - enemy_y)*2)
+        distance = math.sqrt((player_x - enemy_x)**2 + (player_y - enemy_y)**2)
 
         if distance != 0:
             # Normalizar o vetor de direção
@@ -341,11 +341,11 @@ assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
 jogador = player(groups, assets['froslass'])
 all_sprites.add(jogador)
 
-# Create the enemies
+# Cria inimigos
 enemies = pygame.sprite.Group()
-for _ in range(5):  # Adjust the number of enemies
-    enemy_img = assets['Meowth']
-    new_enemy = Enemy(enemy_img, assets['Meowth'], jogador)  # Pass the player to the enemy
+for _ in range(5):  # Ajusta a quantidade de inimigos
+    enemy_img = assets['Meowth']  # A imagem do inimigo
+    new_enemy = Enemy(enemy_img, enemy_img, jogador)  # Passando a imagem do inimigo e o jogador
     all_sprites.add(new_enemy)
     enemies.add(new_enemy)
 
