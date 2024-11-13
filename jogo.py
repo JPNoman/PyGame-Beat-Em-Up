@@ -8,14 +8,14 @@ from os import path
 
 # Define parametros
 
-largura = 750 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
-altura = 1000
+largura = 900 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
+altura = 1550
 fps = 60
 clock = pygame.time.Clock()
-altura_player = 120
-largura_player = 200
-altura_inimigo = 80
-largura_inimigo = 240
+altura_player = 170
+largura_player = 270
+altura_inimigo = 120
+largura_inimigo = 310
 STILL = 0
 WALK = 'walk'
 EXPLODE = 'explode'
@@ -32,6 +32,7 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 state = INIT
+esquerda_enemy = False
 
 # Define o jogador
 
@@ -110,8 +111,8 @@ class player(pygame.sprite.Sprite):
             self.rect.left = 0 
         if self.rect.bottom > largura:
             self.rect.bottom = largura
-        if self.rect.top < 0:
-            self.rect.top = 0
+        if self.rect.top < 0 + 500:
+            self.rect.top = 0 + 500
     
     def atacar(self):
         # Verifica se pode atacar
@@ -154,7 +155,7 @@ class golpe(pygame.sprite.Sprite):
     def update(self):
         now = pygame.time.get_ticks()
         elapsed_ticks = now - self.last_shot
-        if elapsed_ticks > 300:
+        if elapsed_ticks > 200:
             self.kill()
         self.rect.x += self.speedx
         self.rect.y += self.speedy
@@ -199,7 +200,8 @@ class Enemy(pygame.sprite.Sprite):
 
         self.speedx = 0
         self.speedy = 0
-        self.player = player  # Referência ao jogador para seguir
+        self.player = player
+        
 
     def load_spritesheet(self, sheet, rows, cols):
         # Função para dividir o spritesheet em uma lista de imagens
@@ -222,6 +224,17 @@ class Enemy(pygame.sprite.Sprite):
         # Seguir o jogador
         player_x, player_y = self.player.rect.centerx, self.player.rect.centery
         enemy_x, enemy_y = self.rect.centerx, self.rect.centery
+
+        if player_x < enemy_x:
+            esquerda_enemy =True
+        else:
+            esquerda_enemy = False
+
+        if esquerda_enemy: # Inverte a sprite se o jogador está olhando para o outro lado
+            self.image = pygame.transform.flip(self.animation[self.state][self.frame], True, False)
+
+        if not esquerda_enemy:
+            self.image = self.animation[self.state][self.frame]
 
         # Calcular a distância entre o inimigo e o jogador
         distance = math.sqrt((player_x - enemy_x)**2 + (player_y - enemy_y)**2)
@@ -425,7 +438,7 @@ pygame.display.set_caption('Pokémon Beat em Up')
 
 # Inicia assets
 
-image = pygame.image.load('assets/background.png').convert()
+image = pygame.image.load('assets/mapa.jpg').convert()
 image = pygame.transform.scale(image, (altura, largura))
 
 # Sons do jogo
@@ -460,7 +473,7 @@ all_attacks.add(ataque_atual)
 
 # Cria inimigos
 enemies = pygame.sprite.Group()
-for _ in range(4):  # Ajusta a quantidade de inimigos
+for _ in range(5):  # Ajusta a quantidade de inimigos
     enemy_img = assets['Meowth']  # A imagem do inimigo
     new_enemy = Enemy(enemy_img, enemy_img, jogador)  # Passando a imagem do inimigo e o jogador
     all_sprites.add(new_enemy)
