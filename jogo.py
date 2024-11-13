@@ -8,19 +8,30 @@ from os import path
 
 # Define parametros
 
-largura = 300 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
-altura = 600
+largura = 750 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
+altura = 1000
 fps = 60
 clock = pygame.time.Clock()
 altura_player = 120
 largura_player = 200
-altura_inimigo = 100
+altura_inimigo = 80
 largura_inimigo = 240
 STILL = 0
 WALK = 'walk'
 EXPLODE = 'explode'
 img_dir = path.join(path.dirname(__file__), 'assets')
 direita = True # Estabelece pra que lado o jogador está olhando no começo do jogo
+INIT = 0
+GAME = 1
+QUIT = 2
+# Define algumas variáveis com as cores básicas
+WHITE = (255, 255, 255)
+BLACK = (0, 0, 0)
+RED = (255, 0, 0)
+GREEN = (0, 255, 0)
+BLUE = (0, 0, 255)
+YELLOW = (255, 255, 0)
+state = INIT
 
 # Define o jogador
 
@@ -207,10 +218,6 @@ class Enemy(pygame.sprite.Sprite):
     def update(self):
         # Controle de animação
         now = pygame.time.get_ticks()
-        if now - self.last_update > self.frame_rate:
-            self.last_update = now
-            self.frame = (self.frame + 1) % len(self.animation[self.state])
-            self.image = self.animation[self.state][self.frame]
 
         # Seguir o jogador
         player_x, player_y = self.player.rect.centerx, self.player.rect.centery
@@ -225,8 +232,13 @@ class Enemy(pygame.sprite.Sprite):
             direction_y = (player_y - enemy_y) / distance
 
             # Ajustar a velocidade
-            self.speedx = direction_x * 3
-            self.speedy = direction_y * 3
+            self.speedx = direction_x * 1.5
+            self.speedy = direction_y * 1.5
+
+        if now - self.last_update > self.frame_rate:
+            self.last_update = now
+            self.frame = (self.frame + 1) % len(self.animation[self.state])
+            self.image = self.animation[self.state][self.frame]
 
         # Atualizar posição
         self.rect.x += self.speedx
@@ -330,6 +342,41 @@ def load_spritesheet(spritesheet, rows, columns):
             sprites.append(image)
     return sprites
 
+def init_screen(screen):
+    # Variável para o ajuste de velocidade
+    clock = pygame.time.Clock()
+
+    # Carrega o fundo da tela inicial
+    inicial = pygame.image.load('assets/inspermonpng.png').convert()
+    inicial_rect = inicial.get_rect()
+    inicial = pygame.transform.scale(inicial, (altura, largura))
+
+    running = True
+    while running:
+
+        # Ajusta a velocidade do jogo.
+        clock.tick(fps)
+
+        # Processa os eventos (mouse, teclado, botão, etc).
+        for event in pygame.event.get():
+            # Verifica se foi fechado.
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            if event.type == pygame.KEYUP:
+                state = GAME
+                running = False
+
+        # A cada loop, redesenha o fundo e os sprites
+        screen.fill(BLACK)
+        screen.blit(inicial, inicial_rect)
+
+        # Depois de desenhar tudo, inverte o display.
+        pygame.display.flip()
+
+    return state
+
 def game_screen(screen):
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
@@ -413,7 +460,7 @@ all_attacks.add(ataque_atual)
 
 # Cria inimigos
 enemies = pygame.sprite.Group()
-for _ in range(1):  # Ajusta a quantidade de inimigos
+for _ in range(4):  # Ajusta a quantidade de inimigos
     enemy_img = assets['Meowth']  # A imagem do inimigo
     new_enemy = Enemy(enemy_img, enemy_img, jogador)  # Passando a imagem do inimigo e o jogador
     all_sprites.add(new_enemy)
@@ -493,6 +540,14 @@ while game:
     window.blit(image, (0, 0))
     all_sprites.draw(window)
     pygame.display.update()  # Mostra o novo frame para o jogador
+    
+    if state == INIT:
+        state = init_screen(window)
+    elif state == GAME:
+        clock.tick(fps)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game = False
     
 # Fecha o jogo
 
