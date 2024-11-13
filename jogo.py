@@ -9,14 +9,14 @@ from os import path
 
 # Define parametros
 
-largura = 750 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
-altura = 1000
+largura = 900 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
+altura = 1550
 fps = 60
 clock = pygame.time.Clock()
-altura_player = 120
-largura_player = 200
-altura_inimigo = 80
-largura_inimigo = 240
+altura_player = 170
+largura_player = 270
+altura_inimigo = 120
+largura_inimigo = 290
 STILL = 0
 WALK = 'walk'
 img_dir = path.join(path.dirname(__file__), 'assets')
@@ -111,8 +111,8 @@ class player(pygame.sprite.Sprite):
             self.rect.left = 0 
         if self.rect.bottom > largura:
             self.rect.bottom = largura
-        if self.rect.top < 0:
-            self.rect.top = 0
+        if self.rect.top < 0 + 500:
+            self.rect.top = 0 + 500
     
     def atacar(self):
         # Verifica se pode atacar
@@ -365,7 +365,7 @@ pygame.display.set_caption('Pokémon Beat em Up')
 
 # Inicia assets
 
-image = pygame.image.load('assets/background.png').convert()
+image = pygame.image.load('assets/mapa.jpg').convert()
 image = pygame.transform.scale(image, (altura, largura))
 
 # Sons do jogo
