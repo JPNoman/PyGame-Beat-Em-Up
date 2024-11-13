@@ -1,5 +1,4 @@
 # Inicia o jogo e importa coisas
-
 import pygame
 pygame.init()
 import random
@@ -19,6 +18,7 @@ altura_inimigo = 80
 largura_inimigo = 240
 STILL = 0
 WALK = 'walk'
+EXPLODE = 'explode'
 img_dir = path.join(path.dirname(__file__), 'assets')
 direita = True # Estabelece pra que lado o jogador está olhando no começo do jogo
 INIT = 0
@@ -244,6 +244,79 @@ class Enemy(pygame.sprite.Sprite):
         self.rect.x += self.speedx
         self.rect.y += self.speedy
 
+# Classe que representa uma colisão com inimigo
+class Explosion(pygame.sprite.Sprite):
+    # Construtor da classe.
+    def __init__(self, center, assets, death_sheet):
+        # Construtor da classe mãe (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+        death_sheet = pygame.transform.scale(death_sheet, (largura_inimigo, altura_inimigo))
+        spritesheet = load_spritesheet(death_sheet, 1, 10)
+        self.animations = { # Estabelece possiveis loops de animação
+            EXPLODE: spritesheet[0:4]
+        }
+        self.state = EXPLODE # Estabelece estado de animação inicial
+        self.animation = self.animations[self.state]
+        self.frame = 0
+        self.image = self.animation[self.frame]
+
+        # Armazena a animação de explosão
+        self.explosion_anim = assets['death']
+
+        # Inicia o processo de animação colocando a primeira imagem na tela.
+        self.frame = 0  # Armazena o índice atual na animação
+        self.image = assets['death']  # Pega a primeira imagem
+        self.rect = self.image.get_rect()
+        self.rect.center = center  # Posiciona o centro da imagem
+
+        # Guarda o tick da primeira imagem, ou seja, o momento em que a imagem foi mostrada
+        self.last_update = pygame.time.get_ticks()
+
+        # Controle de ticks de animação: troca de imagem a cada self.frame_ticks milissegundos.
+        # Quando pygame.time.get_ticks() - self.last_update > self.frame_ticks a
+        # próxima imagem da animação será mostrada
+        self.frame_ticks = 50
+
+    def load_spritesheet(self, sheet, rows, cols):
+        # Função para dividir o spritesheet em uma lista de imagens
+        sprites = []
+        sheet_rect = sheet.get_rect()
+        frame_width = sheet_rect.width // cols
+        frame_height = sheet_rect.height // rows
+
+        for row in range(rows):
+            for col in range(cols):
+                frame_rect = pygame.Rect(col * frame_width, row * frame_height, frame_width, frame_height)
+                image = sheet.subsurface(frame_rect)
+                sprites.append(image)
+        return sprites
+
+    def update(self):
+        # Verifica o tick atual.
+        now = pygame.time.get_ticks()
+        # Verifica quantos ticks se passaram desde a ultima mudança de frame.
+        elapsed_ticks = now - self.last_update
+
+        # Se já está na hora de mudar de imagem...
+        if elapsed_ticks > self.frame_ticks:
+            # Marca o tick da nova imagem.
+            self.last_update = now
+
+            # Avança um quadro.
+            self.frame += 1
+
+            # Verifica se já chegou no final da animação.
+            if self.frame == len(self.explosion_anim):
+                # Se sim, tchau explosão!
+                self.kill()
+            else:
+                # Se ainda não chegou ao fim da explosão, troca de imagem.
+                center = self.rect.center
+                self.image = self.explosion_anim[self.frame]
+                self.rect = self.image.get_rect()
+                self.rect.center = center
+
+
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
 # É necessário definir quantos sprites estão presentes em cada linha e coluna.
 # Essa função assume que os sprites no sprite sheet possuem todos o mesmo tamanho.
@@ -373,16 +446,17 @@ assets = {}
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
 assets['Meowth'] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
-assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) 
+assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
 assets['placeholder'] = pygame.image.load('assets/placeholder.png').convert_alpha()
 assets['placeholder'] = pygame.transform.scale(assets['placeholder'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
-
+assets['death'] = pygame.image.load('assets/death_effect.png').convert_alpha()
+assets['death'] = pygame.transform.scale(assets['death'], (largura_inimigo, altura_inimigo)) # Tamanho da explosão
 # Cria o player
 jogador = player(groups, assets['froslass'])
 all_sprites.add(jogador)
 ataque_atual = golpe(assets,0,0)
-all_sprites.add(ataque_atual)
+all_attacks.add(ataque_atual)
 
 # Cria inimigos
 enemies = pygame.sprite.Group()
@@ -396,6 +470,77 @@ for _ in range(4):  # Ajusta a quantidade de inimigos
 
 game = True
 while game:
+    clock.tick(fps)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game = False
+# Só verifica o teclado se está no estado de jogo
+        if game == True:
+            # Verifica se apertou alguma tecla.
+            if event.type == pygame.KEYDOWN:
+                # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                if event.key == pygame.K_a:
+                    jogador.speedx -= 6
+                    ataque_atual.speedx -= 6
+                    direita = False
+                if event.key == pygame.K_d:
+                    jogador.speedx += 6
+                    ataque_atual.speedx += 6
+                    direita = True
+                if event.key == pygame.K_w:
+                    jogador.speedy -= 6
+                    ataque_atual.speedy -= 6
+                if event.key == pygame.K_s:
+                    jogador.speedy += 6
+                    ataque_atual.speedy += 6
+                if event.key == pygame.K_SPACE:
+                    jogador.atacar()
+                if event.key == pygame.K_ESCAPE:
+                    game = False
+            # Verifica se soltou alguma tecla.
+            if event.type == pygame.KEYUP:
+                # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                if event.key == pygame.K_a:
+                    jogador.speedx += 6
+                    ataque_atual.speedx += 6
+                if event.key == pygame.K_d:
+                    jogador.speedx -= 6
+                    ataque_atual.speedx -= 6
+                if event.key == pygame.K_w:
+                    jogador.speedy += 6
+                    ataque_atual.speedy += 6
+                if event.key == pygame.K_s:
+                    jogador.speedy -= 6
+                    ataque_atual.speedy -= 6
+
+            # Verifica se houve colisão entre tiro e meteoro
+            hits = pygame.sprite.groupcollide(enemies, all_attacks, True, True)
+            for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
+                # O meteoro e destruido e precisa ser recriado
+                # assets['destroy_sound'].play()
+                m = Enemy(assets)
+                all_sprites.add(m)
+                enemies.add(m)
+
+                # No lugar do meteoro antigo, adicionar uma explosão.
+                explosao = Explosion(Enemy.rect.center, assets)
+                all_sprites.add(explosao)
+                
+            # Verifica se houve colisão entre nave e meteoro
+            hits = pygame.sprite.spritecollide(jogador, enemies, True)
+            if len(hits) > 0:
+                # Toca o som da colisão
+                #assets['boom_sound'].play()
+                time.sleep(1) # Precisa esperar senão fecha
+
+                game = False
+    # ----- Gera saídas
+    all_sprites.update()
+    window.fill((0, 0, 0))  # Preenche com a cor preta 
+    window.blit(image, (0, 0))
+    all_sprites.draw(window)
+    pygame.display.update()  # Mostra o novo frame para o jogador
+    
     if state == INIT:
         state = init_screen(window)
     elif state == GAME:
@@ -403,42 +548,6 @@ while game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game = False
-    # Só verifica o teclado se está no estado de jogo
-            if game == True:
-                # Verifica se apertou alguma tecla.
-                if event.type == pygame.KEYDOWN:
-                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                    if event.key == pygame.K_a:
-                        jogador.speedx -= 5
-                        direita = False
-                    if event.key == pygame.K_d:
-                        jogador.speedx += 5
-                        direita = True
-                    if event.key == pygame.K_w:
-                        jogador.speedy -= 5
-                    if event.key == pygame.K_s:
-                        jogador.speedy += 5
-                    if event.key == pygame.K_SPACE:
-                        jogador.atacar()
-                    if event.key == pygame.K_ESCAPE:
-                        game = False
-                # Verifica se soltou alguma tecla.
-                if event.type == pygame.KEYUP:
-                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                    if event.key == pygame.K_a:
-                        jogador.speedx += 5
-                    if event.key == pygame.K_d:
-                        jogador.speedx -= 5
-                    if event.key == pygame.K_w:
-                        jogador.speedy += 5
-                    if event.key == pygame.K_s:
-                        jogador.speedy -= 5
-        # ----- Gera saídas
-        all_sprites.update()
-        window.fill((0, 0, 0))  # Preenche com a cor preta 
-        window.blit(image, (0, 0))
-        all_sprites.draw(window)
-        pygame.display.update()  # Mostra o novo frame para o jogador
     
 # Fecha o jogo
 
