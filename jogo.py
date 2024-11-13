@@ -158,7 +158,7 @@ class golpe(pygame.sprite.Sprite):
         # Construtor da classe mãe (Sprite).
         pygame.sprite.Sprite.__init__(self)
 
-        self.image = assets['placeholder']
+        self.image = assets['iceslash']
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
@@ -440,8 +440,8 @@ assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
 assets['Meowth'] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
 assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) 
-assets['placeholder'] = pygame.image.load('assets/placeholder.png').convert_alpha()
-assets['placeholder'] = pygame.transform.scale(assets['placeholder'], (largura_player, altura_player))
+assets['iceslash'] = pygame.image.load('assets/iceslash.png').convert_alpha()
+assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
 assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
 assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, altura_player))
