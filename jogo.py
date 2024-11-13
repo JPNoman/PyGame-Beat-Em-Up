@@ -64,6 +64,8 @@ class player(pygame.sprite.Sprite):
         # Só será possível atacar uma vez a cada 500 milissegundos
         self.last_shot = pygame.time.get_ticks()
         self.shoot_ticks = 500
+        self.last_ult = pygame.time.get_ticks()
+        self.ult_ticks = 4000
 
     def update(self):
         # Verifica o tick atual.
@@ -130,6 +132,23 @@ class player(pygame.sprite.Sprite):
             self.groups['all_sprites'].add(ataque)
             self.groups['all_attacks'].add(ataque)
             self.assets['ice.mp3'].play()
+    
+    def ultar(self):
+        # Verifica se pode ultar
+        now = pygame.time.get_ticks()
+        # Verifica quantos ticks se passaram desde o último ataque.
+        elapsed_ticks = now - self.last_ult
+
+        # Se já pode atacar novamente...
+        if elapsed_ticks > self.ult_ticks:
+            # Marca o tick da nova imagem.
+            self.last_ult = now
+            ataque = ult(self.assets, self.rect.bottom, self.rect.centerx - 40) ######### Mudar esses parametros do asteroide
+            if direita:
+                ataque = ult(self.assets, self.rect.bottom, self.rect.centerx + 40)
+            self.groups['all_sprites'].add(ataque)
+            self.groups['all_attacks'].add(ataque)
+            self.assets['ice.mp3'].play()
 
 # Define um golpe básico
 
@@ -156,6 +175,36 @@ class golpe(pygame.sprite.Sprite):
         now = pygame.time.get_ticks()
         elapsed_ticks = now - self.last_shot
         if elapsed_ticks > 200:
+            self.kill()
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+
+class ult(pygame.sprite.Sprite):
+    # Construtor da classe.
+    def __init__(self, assets, bottom, centerx):
+        # Construtor da classe mãe (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = assets['ultfroslass']
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+
+        # Coloca no lugar inicial definido em x, y do constutor
+        self.rect.centerx = centerx
+        self.rect.bottom = bottom
+        if direita:
+            self.speedx = 10
+        else:
+            self.speedx = -10
+        self.speedy = 0
+
+        # Grava quando o ataque é criado
+        self.last_shot = pygame.time.get_ticks()
+    
+    def update(self):
+        now = pygame.time.get_ticks()
+        elapsed_ticks = now - self.last_shot
+        if elapsed_ticks > 4000:
             self.kill()
         self.rect.x += self.speedx
         self.rect.y += self.speedy
@@ -251,7 +300,11 @@ class Enemy(pygame.sprite.Sprite):
         if now - self.last_update > self.frame_rate:
             self.last_update = now
             self.frame = (self.frame + 1) % len(self.animation[self.state])
-            self.image = self.animation[self.state][self.frame]
+            if esquerda_enemy: # Inverte a sprite se o jogador está olhando para o outro lado
+                self.image = pygame.transform.flip(self.animation[self.state][self.frame], True, False)
+
+            if not esquerda_enemy:
+                self.image = self.animation[self.state][self.frame]
 
         # Atualizar posição
         self.rect.x += self.speedx
@@ -463,8 +516,12 @@ assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, al
 assets['placeholder'] = pygame.image.load('assets/placeholder.png').convert_alpha()
 assets['placeholder'] = pygame.transform.scale(assets['placeholder'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
+
+assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
+assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, altura_player))
 assets['death'] = pygame.image.load('assets/death_effect.png').convert_alpha()
 assets['death'] = pygame.transform.scale(assets['death'], (largura_inimigo, altura_inimigo)) # Tamanho da explosão
+
 # Cria o player
 jogador = player(groups, assets['froslass'])
 all_sprites.add(jogador)
@@ -561,6 +618,45 @@ while game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game = False
+    # Só verifica o teclado se está no estado de jogo
+            if game == True:
+                # Verifica se apertou alguma tecla.
+                if event.type == pygame.KEYDOWN:
+                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                    if event.key == pygame.K_a:
+                        jogador.speedx -= 5
+                        direita = False
+                    if event.key == pygame.K_d:
+                        jogador.speedx += 5
+                        direita = True
+                    if event.key == pygame.K_w:
+                        jogador.speedy -= 5
+                    if event.key == pygame.K_s:
+                        jogador.speedy += 5
+                    if event.key == pygame.K_SPACE:
+                        jogador.atacar()
+                    if event.key == pygame.K_q:
+                        jogador.ultar()
+                    if event.key == pygame.K_ESCAPE:
+                        game = False
+                # Verifica se soltou alguma tecla.
+                if event.type == pygame.KEYUP:
+                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                    if event.key == pygame.K_a:
+                        jogador.speedx += 5
+                    if event.key == pygame.K_d:
+                        jogador.speedx -= 5
+                    if event.key == pygame.K_w:
+                        jogador.speedy += 5
+                    if event.key == pygame.K_s:
+                        jogador.speedy -= 5
+        # ----- Gera saídas
+        all_sprites.update()
+        window.fill((0, 0, 0))  # Preenche com a cor preta 
+        window.blit(image, (0, 0))
+        all_sprites.draw(window)
+        pygame.display.update()  # Mostra o novo frame para o jogador
+
     
 # Fecha o jogo
 
