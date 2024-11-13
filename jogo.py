@@ -16,7 +16,7 @@ clock = pygame.time.Clock()
 altura_player = 170
 largura_player = 270
 altura_inimigo = 120
-largura_inimigo = 290
+largura_inimigo = 310
 STILL = 0
 WALK = 'walk'
 img_dir = path.join(path.dirname(__file__), 'assets')
@@ -399,7 +399,7 @@ all_sprites.add(ataque_atual)
 
 # Cria inimigos
 enemies = pygame.sprite.Group()
-for _ in range(1):  # Ajusta a quantidade de inimigos
+for _ in range(5):  # Ajusta a quantidade de inimigos
     enemy_img = assets['Meowth']  # A imagem do inimigo
     new_enemy = Enemy(enemy_img, enemy_img, jogador)  # Passando a imagem do inimigo e o jogador
     all_sprites.add(new_enemy)
