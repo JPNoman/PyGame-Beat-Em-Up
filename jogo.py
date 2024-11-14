@@ -344,7 +344,7 @@ def load_spritesheet(spritesheet, rows, columns):
 def init_screen(screen):
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
-
+    
     # Carrega o fundo da tela inicial
     inicial = pygame.image.load('assets/inspermonpng.png').convert()
     inicial_rect = inicial.get_rect()
@@ -364,8 +364,9 @@ def init_screen(screen):
                 running = False
 
             if event.type == pygame.KEYUP:
-                state = GAME
-                running = False
+                if event.key == pygame.K_SPACE:
+                        state = GAME
+                        running = False
 
         # A cada loop, redesenha o fundo e os sprites
         screen.fill(BLACK)
@@ -453,6 +454,8 @@ assets['whoosh.mp3'] = pygame.mixer.Sound('assets/whoosh.mp3')
 assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
 assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, largura_player))
 assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 28)
+assets['pressenter'] = pygame.image.load('assets/pressenter.png').convert_alpha()
+assets['pressenter'] = pygame.transform.scale(assets['pressenter'], (300, 300))
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
