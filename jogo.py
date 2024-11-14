@@ -14,9 +14,9 @@ altura = 1550
 fps = 60
 clock = pygame.time.Clock()
 altura_player = 170
-largura_player = 270
-altura_inimigo = 120
-largura_inimigo = 310
+largura_player = 270 ######## Olha eu acho que a altura e largura do player estõ invertidas, mas não mudei nada pra não quebrar nada
+altura_inimigo = 120 
+largura_inimigo = 350
 STILL = 0
 WALK = 'walk'
 img_dir = path.join(path.dirname(__file__), 'assets')
@@ -33,6 +33,7 @@ BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 state = INIT
 esquerda_enemy = False
+score = 0
 
 # Define o jogador
 
@@ -148,7 +149,7 @@ class player(pygame.sprite.Sprite):
                 ataque = ult(self.assets, self.rect.bottom, self.rect.centerx + 40)
             self.groups['all_sprites'].add(ataque)
             self.groups['all_attacks'].add(ataque)
-            self.assets['ice.mp3'].play()
+            self.assets['whoosh.mp3'].play()
 
 # Define um golpe básico
 
@@ -159,6 +160,8 @@ class golpe(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
 
         self.image = assets['iceslash']
+        if not direita:
+            self.image = pygame.transform.flip(assets['iceslash'], True, False)
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
@@ -198,7 +201,7 @@ class ult(pygame.sprite.Sprite):
             self.speedx = -10
         self.speedy = 0
 
-        # Grava quando o ataque é criado
+        # Grava quando a ult é criada
         self.last_shot = pygame.time.get_ticks()
     
     def update(self):
@@ -233,23 +236,26 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Posicionar o inimigo em uma borda aleatória
-        spawn_edge = random.choice(["top", "bottom", "left", "right"])
-        if spawn_edge == "top":
-            self.rect.x = random.randint(0, largura - self.rect.width)
-            self.rect.y = -self.rect.height
-        elif spawn_edge == "bottom":
-            self.rect.x = random.randint(0, largura - self.rect.width)
-            self.rect.y = altura
-        elif spawn_edge == "left":
-            self.rect.x = -self.rect.width
+        spawn_edge = random.choice(["left", "right"])
+        if spawn_edge == "left":
+            self.rect.x = 0
             self.rect.y = random.randint(0, altura - self.rect.height)
         elif spawn_edge == "right":
-            self.rect.x = largura
+            self.rect.x = altura 
             self.rect.y = random.randint(0, altura - self.rect.height)
 
         self.speedx = 0
         self.speedy = 0
         self.player = player
+
+        if self.rect.right > altura:
+            self.rect.right = altura
+        if self.rect.left < 0:
+            self.rect.left = 0 
+        if self.rect.bottom > largura:
+            self.rect.bottom = largura
+        if self.rect.top < 0 + 700:
+            self.rect.top = 0 + 700
         
 
     def load_spritesheet(self, sheet, rows, cols):
@@ -443,8 +449,10 @@ assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, al
 assets['iceslash'] = pygame.image.load('assets/iceslash.png').convert_alpha()
 assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
+assets['whoosh.mp3'] = pygame.mixer.Sound('assets/whoosh.mp3')
 assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
-assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, altura_player))
+assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, largura_player))
+assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 28)
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
@@ -508,6 +516,13 @@ while game:
         window.fill((0, 0, 0))  # Preenche com a cor preta 
         window.blit(image, (0, 0))
         all_sprites.draw(window)
+
+        # Desenha o score
+        pontos = assets['score_font'].render("{:08d}".format(score), True, YELLOW)
+        text_rect = pontos.get_rect()
+        text_rect.midtop = ((altura / 2),  45)
+        window.blit(pontos, text_rect)
+
         pygame.display.update()  # Mostra o novo frame para o jogador
     
 # Fecha o jogo
