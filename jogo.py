@@ -606,8 +606,8 @@ while game:
                 enemies.add(m)
 
                 # No lugar do meteoro antigo, adicionar uma explosão.
-                explosao = Explosion(Enemy.rect.center, assets)
-                all_sprites.add(explosao)
+                #explosao = Explosion(Enemy.rect.center, assets)
+                #all_sprites.add(explosao)
                 
             # Verifica se houve colisão entre nave e meteoro
             hits = pygame.sprite.spritecollide(jogador, enemies, True)
