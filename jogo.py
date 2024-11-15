@@ -302,8 +302,8 @@ class Enemy(pygame.sprite.Sprite):
             direction_y = (player_y - enemy_y) / distance
 
             # Ajustar a velocidade
-            self.speedx = direction_x * 1.5
-            self.speedy = direction_y * 1.5
+            self.speedx = direction_x * 2.5
+            self.speedy = direction_y * 2.5
 
         if now - self.last_update > self.frame_rate:
             self.last_update = now
