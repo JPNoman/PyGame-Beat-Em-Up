@@ -29,6 +29,7 @@ GAME = 1
 QUIT = 2
 INSTR = 3
 INSTR2 = 4
+OVER = 5
 # Define algumas variáveis com as cores básicas
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -41,6 +42,7 @@ esquerda_enemy = False
 score = 0
 inim_add = 0
 reforços = 0
+
 
 # Define o jogador
 
@@ -254,8 +256,8 @@ class Enemy(pygame.sprite.Sprite):
             self.rect.x = altura 
             self.rect.y = random.randint(0, altura - self.rect.height)
 
-        self.speedx = 0
-        self.speedy = 0
+        self.speedx = random.randint(2,5)
+        self.speedy = self.speedx
         self.player = player
 
         if self.rect.right > altura:
@@ -513,6 +515,52 @@ def instr_screen2(screen):
 
     return state
 
+def gameover_screen(screen):
+    # Variável para o ajuste de velocidade
+    clock = pygame.time.Clock()
+    
+    # Carrega o fundo da tela inicial
+    gameover = pygame.image.load('assets/gameover.png').convert()
+    gameover_rect = gameover.get_rect()
+    gameover = pygame.transform.scale(gameover, (altura, largura))
+
+    running = True
+    while running:
+
+        # Ajusta a velocidade do jogo.
+        clock.tick(fps)
+
+        pygame.mixer.music.pause() 
+
+        # Processa os eventos (mouse, teclado, botão, etc).
+        for event in pygame.event.get():
+            # Verifica se foi fechado.
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    state = QUIT
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
+
+        # A cada loop, redesenha o fundo e os sprites
+        screen.fill(BLACK)
+        screen.blit(gameover, gameover_rect)
+        assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 50)
+        pontos = assets['score_font'].render("{:08d}".format(score), True, WHITE)
+        text_rect = pontos.get_rect()
+        text_rect.midtop = ((altura / 2) + 350,  460)
+        window.blit(pontos, text_rect)
+
+        # Depois de desenhar tudo, inverte o display.
+        pygame.display.flip()
+
+    return state
+
 def game_screen(screen):
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
@@ -695,10 +743,11 @@ while game:
         if len(hits) > 0:
             # Toca o som da colisão
             #assets['boom_sound'].play()
-            time.sleep(5) # Precisa esperar senão fecha
-
-            game = False
-
+            #time.sleep(3) # Precisa esperar senão fecha
+            #game = False
+            state = OVER
+        
+        # Adiciona mais inimigos ao longo do tempo
         if inim_add > reforços:
             reforços = inim_add
             m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
@@ -715,8 +764,13 @@ while game:
         text_rect.midtop = ((altura / 2),  45)
         window.blit(pontos, text_rect)
         pygame.display.update()  # Mostra o novo frame para o jogador
+    elif state == OVER:
+        clock.tick(fps)
+        state = gameover_screen(window)
+        pygame.display.update()  # Mostra o novo frame para o jogador
     elif state == QUIT:
         pygame.quit()
+
 # Fecha o jogo
 
 pygame.quit()
