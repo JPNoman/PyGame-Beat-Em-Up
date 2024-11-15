@@ -7,7 +7,6 @@ import time
 from os import path
 
 # Define parametros
-
 largura = 900 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
 altura = 1550
 fps = 60
@@ -19,6 +18,9 @@ largura_inimigo = 310
 STILL = 0
 WALK = 'walk'
 EXPLODE = 'explode'
+ATTACK = 'attack'
+BATTLE = 'battle'
+DAMAGED = 'damaged'
 img_dir = path.join(path.dirname(__file__), 'assets')
 direita = True # Estabelece pra que lado o jogador está olhando no começo do jogo
 INIT = 0
@@ -216,12 +218,15 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
 
         # Carregar e redimensionar o spritesheet
-        enemy_sheet = pygame.transform.scale(enemy_sheet, (largura_inimigo, altura_inimigo))
-        self.spritesheet = self.load_spritesheet(enemy_sheet, 1, 8)  # Ajuste para 8 frames
+        self.spritesheet = self.load_spritesheet(enemy_sheet['walk'], 1, 8)  # Ajuste para 8 frames
+        self.spritesheet_bat = self.load_spritesheet(enemy_sheet['battle'], 1, 12)  # Ajuste para 12 frames
+        self.spritesheet_dam = self.load_spritesheet(enemy_sheet['damaged'], 1, 5)  # Ajuste para 5 frames
 
         # Configuração da animação
         self.animation = {
-            WALK: self.spritesheet
+            WALK: self.spritesheet,
+            BATTLE: self.spritesheet_bat,
+            DAMAGED: self.spritesheet_dam
         }
         self.state = WALK
         self.frame = 0
@@ -309,78 +314,55 @@ class Enemy(pygame.sprite.Sprite):
         # Atualizar posição
         self.rect.x += self.speedx
         self.rect.y += self.speedy
+        if distance < largura_player/2:
+            self.state = BATTLE
+            self.frame = 0
+            self.last_update = pygame.time.get_ticks()
+            self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
+        else:
+            self.state = WALK
+            self.frame = 0
+            self.last_update = pygame.time.get_ticks()
+            self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
 
+# Classe que representa uma colisão com inimigo
 # Classe que representa uma colisão com inimigo
 class Explosion(pygame.sprite.Sprite):
     # Construtor da classe.
     def __init__(self, center, assets, death_sheet):
         # Construtor da classe mãe (Sprite).
         pygame.sprite.Sprite.__init__(self)
+        # Redimensiona a superfície corretamente
         death_sheet = pygame.transform.scale(death_sheet, (largura_inimigo, altura_inimigo))
         spritesheet = load_spritesheet(death_sheet, 1, 10)
-        self.animations = { # Estabelece possiveis loops de animação
+        self.animations = { # Estabelece possíveis loops de animação
             EXPLODE: spritesheet[0:4]
         }
-        self.state = EXPLODE # Estabelece estado de animação inicial
+        self.state = EXPLODE
         self.animation = self.animations[self.state]
         self.frame = 0
         self.image = self.animation[self.frame]
-
-        # Armazena a animação de explosão
-        self.explosion_anim = assets['death']
-
-        # Inicia o processo de animação colocando a primeira imagem na tela.
-        self.frame = 0  # Armazena o índice atual na animação
-        self.image = assets['death']  # Pega a primeira imagem
         self.rect = self.image.get_rect()
-        self.rect.center = center  # Posiciona o centro da imagem
-
-        # Guarda o tick da primeira imagem, ou seja, o momento em que a imagem foi mostrada
+        self.rect.center = center
         self.last_update = pygame.time.get_ticks()
-
-        # Controle de ticks de animação: troca de imagem a cada self.frame_ticks milissegundos.
-        # Quando pygame.time.get_ticks() - self.last_update > self.frame_ticks a
-        # próxima imagem da animação será mostrada
-        self.frame_ticks = 50
-
-    def load_spritesheet(self, sheet, rows, cols):
-        # Função para dividir o spritesheet em uma lista de imagens
-        sprites = []
-        sheet_rect = sheet.get_rect()
-        frame_width = sheet_rect.width // cols
-        frame_height = sheet_rect.height // rows
-
-        for row in range(rows):
-            for col in range(cols):
-                frame_rect = pygame.Rect(col * frame_width, row * frame_height, frame_width, frame_height)
-                image = sheet.subsurface(frame_rect)
-                sprites.append(image)
-        return sprites
+        self.frame_ticks = 50  # Ajuste conforme necessário
 
     def update(self):
-        # Verifica o tick atual.
+        # Controle de animação
         now = pygame.time.get_ticks()
-        # Verifica quantos ticks se passaram desde a ultima mudança de frame.
         elapsed_ticks = now - self.last_update
 
         # Se já está na hora de mudar de imagem...
         if elapsed_ticks > self.frame_ticks:
-            # Marca o tick da nova imagem.
             self.last_update = now
-
-            # Avança um quadro.
             self.frame += 1
+            if self.frame >= len(self.animation):
+                self.frame = 0
+                self.kill()  # Remove a explosão após terminar a animação
 
-            # Verifica se já chegou no final da animação.
-            if self.frame == len(self.explosion_anim):
-                # Se sim, tchau explosão!
-                self.kill()
-            else:
-                # Se ainda não chegou ao fim da explosão, troca de imagem.
-                center = self.rect.center
-                self.image = self.explosion_anim[self.frame]
-                self.rect = self.image.get_rect()
-                self.rect.center = center
+            self.image = self.animation[self.frame]
+            self.rect = self.image.get_rect(center=self.rect.center)
+
 
 
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
@@ -511,8 +493,13 @@ groups['all_attacks'] = all_attacks
 assets = {}
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
-assets['Meowth'] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
-assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
+assets['Meowth'] = {}
+assets['Meowth']["walk"] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
+assets['Meowth']["walk"] = pygame.transform.scale(assets['Meowth']["walk"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
+assets['Meowth']["battle"] = pygame.image.load('assets/attack.png').convert_alpha()
+assets['Meowth']["battle"] = pygame.transform.scale(assets['Meowth']["battle"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
+assets['Meowth']["damaged"] = pygame.image.load('assets/damaged.png').convert_alpha()
+assets['Meowth']["damaged"] = pygame.transform.scale(assets['Meowth']["damaged"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
 assets['placeholder'] = pygame.image.load('assets/placeholder.png').convert_alpha()
 assets['placeholder'] = pygame.transform.scale(assets['placeholder'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
@@ -588,12 +575,12 @@ while game:
             for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
                 # O meteoro e destruido e precisa ser recriado
                 # assets['destroy_sound'].play()
-                m = Enemy(assets)
+                m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
                 all_sprites.add(m)
                 enemies.add(m)
 
                 # No lugar do meteoro antigo, adicionar uma explosão.
-                explosao = Explosion(Enemy.rect.center, assets)
+                explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
                 all_sprites.add(explosao)
                 
             # Verifica se houve colisão entre nave e meteoro
@@ -601,7 +588,7 @@ while game:
             if len(hits) > 0:
                 # Toca o som da colisão
                 #assets['boom_sound'].play()
-                time.sleep(1) # Precisa esperar senão fecha
+                time.sleep(5) # Precisa esperar senão fecha
 
                 game = False
     # ----- Gera saídas
