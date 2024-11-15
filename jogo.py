@@ -19,6 +19,7 @@ altura_inimigo = 120
 largura_inimigo = 350
 STILL = 0
 WALK = 'walk'
+EXPLODE = 'explode'
 img_dir = path.join(path.dirname(__file__), 'assets')
 direita = True # Estabelece pra que lado o jogador está olhando no começo do jogo
 INIT = 0
@@ -520,13 +521,16 @@ assets = {}
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
 assets['Meowth'] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
-assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) 
+assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
 assets['iceslash'] = pygame.image.load('assets/iceslash.png').convert_alpha()
 assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
+
 assets['whoosh.mp3'] = pygame.mixer.Sound('assets/whoosh.mp3')
 assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
 assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, largura_player))
+assets['death'] = pygame.image.load('assets/death_effect.png').convert_alpha()
+assets['death'] = pygame.transform.scale(assets['death'], (largura_inimigo, altura_inimigo)) # Tamanho da explosão
 assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 28)
 assets['pressenter'] = pygame.image.load('assets/pressenter.png').convert_alpha()
 assets['pressenter'] = pygame.transform.scale(assets['pressenter'], (300, 300))
@@ -535,7 +539,7 @@ assets['pressenter'] = pygame.transform.scale(assets['pressenter'], (300, 300))
 jogador = player(groups, assets['froslass'])
 all_sprites.add(jogador)
 ataque_atual = golpe(assets,0,0)
-all_sprites.add(ataque_atual)
+all_attacks.add(ataque_atual)
 
 # Cria inimigos
 enemies = pygame.sprite.Group()
@@ -549,6 +553,77 @@ for _ in range(5):  # Ajusta a quantidade de inimigos
 
 game = True
 while game:
+    clock.tick(fps)
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            game = False
+# Só verifica o teclado se está no estado de jogo
+        if game == True:
+            # Verifica se apertou alguma tecla.
+            if event.type == pygame.KEYDOWN:
+                # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                if event.key == pygame.K_a:
+                    jogador.speedx -= 6
+                    ataque_atual.speedx -= 6
+                    direita = False
+                if event.key == pygame.K_d:
+                    jogador.speedx += 6
+                    ataque_atual.speedx += 6
+                    direita = True
+                if event.key == pygame.K_w:
+                    jogador.speedy -= 6
+                    ataque_atual.speedy -= 6
+                if event.key == pygame.K_s:
+                    jogador.speedy += 6
+                    ataque_atual.speedy += 6
+                if event.key == pygame.K_SPACE:
+                    jogador.atacar()
+                if event.key == pygame.K_ESCAPE:
+                    game = False
+            # Verifica se soltou alguma tecla.
+            if event.type == pygame.KEYUP:
+                # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                if event.key == pygame.K_a:
+                    jogador.speedx += 6
+                    ataque_atual.speedx += 6
+                if event.key == pygame.K_d:
+                    jogador.speedx -= 6
+                    ataque_atual.speedx -= 6
+                if event.key == pygame.K_w:
+                    jogador.speedy += 6
+                    ataque_atual.speedy += 6
+                if event.key == pygame.K_s:
+                    jogador.speedy -= 6
+                    ataque_atual.speedy -= 6
+
+            # Verifica se houve colisão entre tiro e meteoro
+            hits = pygame.sprite.groupcollide(enemies, all_attacks, True, True)
+            for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
+                # O meteoro e destruido e precisa ser recriado
+                # assets['destroy_sound'].play()
+                m = Enemy(assets)
+                all_sprites.add(m)
+                enemies.add(m)
+
+                # No lugar do meteoro antigo, adicionar uma explosão.
+                explosao = Explosion(Enemy.rect.center, assets)
+                all_sprites.add(explosao)
+                
+            # Verifica se houve colisão entre nave e meteoro
+            hits = pygame.sprite.spritecollide(jogador, enemies, True)
+            if len(hits) > 0:
+                # Toca o som da colisão
+                #assets['boom_sound'].play()
+                time.sleep(1) # Precisa esperar senão fecha
+
+                game = False
+    # ----- Gera saídas
+    all_sprites.update()
+    window.fill((0, 0, 0))  # Preenche com a cor preta 
+    window.blit(image, (0, 0))
+    all_sprites.draw(window)
+    pygame.display.update()  # Mostra o novo frame para o jogador
+    
     if state == INIT:
         state = init_screen(window)
     elif state == INSTR:
@@ -605,6 +680,7 @@ while game:
         window.blit(pontos, text_rect)
 
         pygame.display.update()  # Mostra o novo frame para o jogador
+
     
 # Fecha o jogo
 
