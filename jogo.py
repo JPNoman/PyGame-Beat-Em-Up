@@ -334,7 +334,6 @@ class Enemy(pygame.sprite.Sprite):
             self.last_update = pygame.time.get_ticks()
             self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
 # Classe que representa uma colisão com inimigo
-# Classe que representa uma colisão com inimigo
 class Explosion(pygame.sprite.Sprite):
     # Construtor da classe.
     def __init__(self, center, assets, death_sheet):
@@ -419,8 +418,11 @@ def init_screen(screen):
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
-                        state = INSTR
-                        running = False
+                    state = INSTR
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
 
         # A cada loop, redesenha o fundo e os sprites
         screen.fill(BLACK)
@@ -455,8 +457,11 @@ def instr_screen(screen):
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
-                        state = INSTR2
-                        running = False
+                    state = INSTR2
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
 
         # A cada loop, redesenha o fundo e os sprites
         screen.fill(BLACK)
@@ -491,8 +496,11 @@ def instr_screen2(screen):
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
-                        state = GAME
-                        running = False
+                    state = GAME
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
 
         # A cada loop, redesenha o fundo e os sprites
         screen.fill(BLACK)
@@ -663,39 +671,41 @@ while game:
                             game = False
 
             # Verifica se houve colisão entre tiro e meteoro
-            hits = pygame.sprite.groupcollide(enemies, all_attacks, True, False)
-            for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
-                # O meteoro e destruido e precisa ser recriado
-                # assets['destroy_sound'].play()
-                m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
-                all_sprites.add(m)
-                enemies.add(m)
+        hits = pygame.sprite.groupcollide(enemies, all_attacks, True, False)
+        for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
+            # O meteoro e destruido e precisa ser recriado
+            # assets['destroy_sound'].play()
+            m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
+            all_sprites.add(m)
+            enemies.add(m)
 
-                # No lugar do meteoro antigo, adicionar uma explosão.
+            # No lugar do meteoro antigo, adicionar uma explosão.
 
-                explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
-                all_sprites.add(explosao)
+            explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
+            all_sprites.add(explosao)
 
                 
-            # Verifica se houve colisão entre nave e meteoro
-            hits = pygame.sprite.spritecollide(jogador, enemies, True)
-            if len(hits) > 0:
-                # Toca o som da colisão
-                #assets['boom_sound'].play()
-                time.sleep(5) # Precisa esperar senão fecha
+        # Verifica se houve colisão entre nave e meteoro
+        hits = pygame.sprite.spritecollide(jogador, enemies, True)
+        if len(hits) > 0:
+            # Toca o som da colisão
+            #assets['boom_sound'].play()
+            time.sleep(5) # Precisa esperar senão fecha
 
-                game = False
-    # ----- Gera saídas
-    all_sprites.update()
-    window.fill((0, 0, 0))  # Preenche com a cor preta 
-    window.blit(image, (0, 0))
-    all_sprites.draw(window)
-    # Desenha o score
-    pontos = assets['score_font'].render("{:08d}".format(score), True, WHITE)
-    text_rect = pontos.get_rect()
-    text_rect.midtop = ((altura / 2),  45)
-    window.blit(pontos, text_rect)
-    pygame.display.update()  # Mostra o novo frame para o jogador
+            game = False
+        # ----- Gera saídas
+        all_sprites.update()
+        window.fill((0, 0, 0))  # Preenche com a cor preta 
+        window.blit(image, (0, 0))
+        all_sprites.draw(window)
+        # Desenha o score
+        pontos = assets['score_font'].render("{:08d}".format(score), True, WHITE)
+        text_rect = pontos.get_rect()
+        text_rect.midtop = ((altura / 2),  45)
+        window.blit(pontos, text_rect)
+        pygame.display.update()  # Mostra o novo frame para o jogador
+    elif state == QUIT:
+        pygame.quit()
 # Fecha o jogo
 
 pygame.quit()
