@@ -502,6 +502,10 @@ def instr_screen2(screen):
                 if event.key == pygame.K_SPACE:
                     state = GAME
                     running = False
+                    pygame.mixer.music.pause()
+                    pygame.mixer.music.load('assets/Battle!.mp3')
+                    pygame.mixer.music.set_volume(0.4)
+                    pygame.mixer.music.play(loops=-1)
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -529,8 +533,6 @@ def gameover_screen(screen):
 
         # Ajusta a velocidade do jogo.
         clock.tick(fps)
-
-        pygame.mixer.music.pause() 
 
         # Processa os eventos (mouse, teclado, botão, etc).
         for event in pygame.event.get():
@@ -615,7 +617,7 @@ image = pygame.transform.scale(image, (altura, largura))
 # Sons do jogo
 ## Atualizar com música de menu, sound effects, etc
 
-pygame.mixer.music.load('assets/Battle!.mp3')
+pygame.mixer.music.load('assets/galactic.mp3')
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(loops=-1)
 
@@ -645,8 +647,6 @@ assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_p
 assets['death'] = pygame.image.load('assets/death_effect.png').convert_alpha()
 assets['death'] = pygame.transform.scale(assets['death'], (largura_inimigo, altura_inimigo)) # Tamanho da explosão
 assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 28)
-assets['pressenter'] = pygame.image.load('assets/pressenter.png').convert_alpha()
-assets['pressenter'] = pygame.transform.scale(assets['pressenter'], (300, 300))
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
@@ -765,6 +765,10 @@ while game:
         window.blit(pontos, text_rect)
         pygame.display.update()  # Mostra o novo frame para o jogador
     elif state == OVER:
+        pygame.mixer.music.pause() 
+        pygame.mixer.music.load('assets/gameover.mp3')
+        pygame.mixer.music.set_volume(0.4)
+        pygame.mixer.music.play(loops=-1)
         clock.tick(fps)
         state = gameover_screen(window)
         pygame.display.update()  # Mostra o novo frame para o jogador
