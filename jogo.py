@@ -39,6 +39,8 @@ YELLOW = (255, 255, 0)
 state = INIT
 esquerda_enemy = False
 score = 0
+inim_add = 0
+reforços = 0
 
 # Define o jogador
 
@@ -308,8 +310,8 @@ class Enemy(pygame.sprite.Sprite):
             direction_y = (player_y - enemy_y) / distance
 
             # Ajustar a velocidade
-            self.speedx = direction_x * 2.5
-            self.speedy = direction_y * 2.5
+            self.speedx = direction_x * 3.5
+            self.speedy = direction_y * 3.5
 
         if now - self.last_update > self.frame_rate:
             self.last_update = now
@@ -683,8 +685,10 @@ while game:
 
             explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
             all_sprites.add(explosao)
-            score += 100
 
+            # Atualiza score
+            score += 100
+            inim_add = score // 1000
                 
         # Verifica se houve colisão entre nave e meteoro
         hits = pygame.sprite.spritecollide(jogador, enemies, True)
@@ -694,6 +698,12 @@ while game:
             time.sleep(5) # Precisa esperar senão fecha
 
             game = False
+
+        if inim_add > reforços:
+            reforços = inim_add
+            m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
+            all_sprites.add(m)
+            enemies.add(m)
         # ----- Gera saídas
         all_sprites.update()
         window.fill((0, 0, 0))  # Preenche com a cor preta 
