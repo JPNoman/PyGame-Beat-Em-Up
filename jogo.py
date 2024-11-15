@@ -15,7 +15,7 @@ clock = pygame.time.Clock()
 altura_player = 170
 largura_player = 270 ######## Olha eu acho que a altura e largura do player estõ invertidas, mas não mudei nada pra não quebrar nada
 altura_inimigo = 120 
-largura_inimigo = 350
+largura_inimigo = 400
 STILL = 0
 WALK = 'walk'
 EXPLODE = 'explode'
@@ -683,6 +683,7 @@ while game:
 
             explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
             all_sprites.add(explosao)
+            score += 100
 
                 
         # Verifica se houve colisão entre nave e meteoro
