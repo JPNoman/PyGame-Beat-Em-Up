@@ -608,51 +608,62 @@ for _ in range(5):  # Ajusta a quantidade de inimigos
 
 game = True
 while game:
-    clock.tick(fps)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            game = False
-# Só verifica o teclado se está no estado de jogo
-        if game == True:
-            # Verifica se apertou alguma tecla.
-            if event.type == pygame.KEYDOWN:
-                # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                if event.key == pygame.K_a:
-                    jogador.speedx -= 6
-                    ataque_atual.speedx -= 6
-                    direita = False
-                if event.key == pygame.K_d:
-                    jogador.speedx += 6
-                    ataque_atual.speedx += 6
-                    direita = True
-                if event.key == pygame.K_w:
-                    jogador.speedy -= 6
-                    ataque_atual.speedy -= 6
-                if event.key == pygame.K_s:
-                    jogador.speedy += 6
-                    ataque_atual.speedy += 6
-                if event.key == pygame.K_SPACE:
-                    jogador.atacar()
-                if event.key == pygame.K_ESCAPE:
-                    game = False
-            # Verifica se soltou alguma tecla.
-            if event.type == pygame.KEYUP:
-                # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                if event.key == pygame.K_a:
-                    jogador.speedx += 6
-                    ataque_atual.speedx += 6
-                if event.key == pygame.K_d:
-                    jogador.speedx -= 6
-                    ataque_atual.speedx -= 6
-                if event.key == pygame.K_w:
-                    jogador.speedy += 6
-                    ataque_atual.speedy += 6
-                if event.key == pygame.K_s:
-                    jogador.speedy -= 6
-                    ataque_atual.speedy -= 6
+    if state == INIT:
+        state = init_screen(window)
+    elif state == INSTR:
+        state = instr_screen(window)
+    elif state == INSTR2:
+        state = instr_screen2(window)
+    elif state == GAME:
+        clock.tick(fps)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game = False
+    # Só verifica o teclado se está no estado de jogo
+            if game == True:
+                # Verifica se apertou alguma tecla.
+                if event.type == pygame.KEYDOWN:
+                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                    if event.key == pygame.K_a:
+                        jogador.speedx -= 6
+                        ataque_atual.speedx -= 6
+                        direita = False
+                    if event.key == pygame.K_d:
+                        jogador.speedx += 6
+                        ataque_atual.speedx += 6
+                        direita = True
+                    if event.key == pygame.K_w:
+                        jogador.speedy -= 6
+                        ataque_atual.speedy -= 6
+                    if event.key == pygame.K_s:
+                        jogador.speedy += 6
+                        ataque_atual.speedy += 6
+                    if event.key == pygame.K_SPACE:
+                        jogador.atacar()
+                    if event.key == pygame.K_ESCAPE:
+                        game = False
+                # Verifica se soltou alguma tecla.
+                if event.type == pygame.KEYUP:
+                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                    if event.key == pygame.K_a:
+                        jogador.speedx += 6
+                        ataque_atual.speedx += 6
+                    if event.key == pygame.K_d:
+                        jogador.speedx -= 6
+                        ataque_atual.speedx -= 6
+                    if event.key == pygame.K_w:
+                        jogador.speedy += 6
+                        ataque_atual.speedy += 6
+                    if event.key == pygame.K_s:
+                        jogador.speedy -= 6
+                        ataque_atual.speedy -= 6
+                    if event.key == pygame.K_q:
+                            jogador.ultar()
+                    if event.key == pygame.K_ESCAPE:
+                            game = False
 
             # Verifica se houve colisão entre tiro e meteoro
-            hits = pygame.sprite.groupcollide(enemies, all_attacks, True, True)
+            hits = pygame.sprite.groupcollide(enemies, all_attacks, True, False)
             for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
                 # O meteoro e destruido e precisa ser recriado
                 # assets['destroy_sound'].play()
@@ -679,66 +690,12 @@ while game:
     window.fill((0, 0, 0))  # Preenche com a cor preta 
     window.blit(image, (0, 0))
     all_sprites.draw(window)
+    # Desenha o score
+    pontos = assets['score_font'].render("{:08d}".format(score), True, WHITE)
+    text_rect = pontos.get_rect()
+    text_rect.midtop = ((altura / 2),  45)
+    window.blit(pontos, text_rect)
     pygame.display.update()  # Mostra o novo frame para o jogador
-    
-    if state == INIT:
-        state = init_screen(window)
-    elif state == INSTR:
-        state = instr_screen(window)
-    elif state == INSTR2:
-        state = instr_screen2(window)
-    elif state == GAME:
-        clock.tick(fps)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                game = False
-    # Só verifica o teclado se está no estado de jogo
-            if game == True:
-                # Verifica se apertou alguma tecla.
-                if event.type == pygame.KEYDOWN:
-                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                    if event.key == pygame.K_a:
-                        jogador.speedx -= 5
-                        direita = False
-                    if event.key == pygame.K_d:
-                        jogador.speedx += 5
-                        direita = True
-                    if event.key == pygame.K_w:
-                        jogador.speedy -= 5
-                    if event.key == pygame.K_s:
-                        jogador.speedy += 5
-                    if event.key == pygame.K_SPACE:
-                        jogador.atacar()
-                    if event.key == pygame.K_q:
-                        jogador.ultar()
-                    if event.key == pygame.K_ESCAPE:
-                        game = False
-                # Verifica se soltou alguma tecla.
-                if event.type == pygame.KEYUP:
-                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                    if event.key == pygame.K_a:
-                        jogador.speedx += 5
-                    if event.key == pygame.K_d:
-                        jogador.speedx -= 5
-                    if event.key == pygame.K_w:
-                        jogador.speedy += 5
-                    if event.key == pygame.K_s:
-                        jogador.speedy -= 5
-        # ----- Gera saídas
-        all_sprites.update()
-        window.fill((0, 0, 0))  # Preenche com a cor preta 
-        window.blit(image, (0, 0))
-        all_sprites.draw(window)
-
-        # Desenha o score
-        pontos = assets['score_font'].render("{:08d}".format(score), True, WHITE)
-        text_rect = pontos.get_rect()
-        text_rect.midtop = ((altura / 2),  45)
-        window.blit(pontos, text_rect)
-
-        pygame.display.update()  # Mostra o novo frame para o jogador
-
-    
 # Fecha o jogo
 
 pygame.quit()
