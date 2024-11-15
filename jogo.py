@@ -8,7 +8,6 @@ import time
 from os import path
 
 # Define parametros
-
 largura = 900 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
 altura = 1550
 fps = 60
@@ -20,6 +19,9 @@ largura_inimigo = 350
 STILL = 0
 WALK = 'walk'
 EXPLODE = 'explode'
+ATTACK = 'attack'
+BATTLE = 'battle'
+DAMAGED = 'damaged'
 img_dir = path.join(path.dirname(__file__), 'assets')
 direita = True # Estabelece pra que lado o jogador está olhando no começo do jogo
 INIT = 0
@@ -222,12 +224,15 @@ class Enemy(pygame.sprite.Sprite):
         super().__init__()
 
         # Carregar e redimensionar o spritesheet
-        enemy_sheet = pygame.transform.scale(enemy_sheet, (largura_inimigo, altura_inimigo))
-        self.spritesheet = self.load_spritesheet(enemy_sheet, 1, 8)  # Ajuste para 8 frames
+        self.spritesheet = self.load_spritesheet(enemy_sheet['walk'], 1, 8)  # Ajuste para 8 frames
+        self.spritesheet_bat = self.load_spritesheet(enemy_sheet['battle'], 1, 12)  # Ajuste para 12 frames
+        self.spritesheet_dam = self.load_spritesheet(enemy_sheet['damaged'], 1, 5)  # Ajuste para 5 frames
 
         # Configuração da animação
         self.animation = {
-            WALK: self.spritesheet
+            WALK: self.spritesheet,
+            BATTLE: self.spritesheet_bat,
+            DAMAGED: self.spritesheet_dam
         }
         self.state = WALK
         self.frame = 0
@@ -318,7 +323,53 @@ class Enemy(pygame.sprite.Sprite):
         # Atualizar posição
         self.rect.x += self.speedx
         self.rect.y += self.speedy
+        if distance < largura_player/2:
+            self.state = BATTLE
+            self.frame = 0
+            self.last_update = pygame.time.get_ticks()
+            self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
+        else:
+            self.state = WALK
+            self.frame = 0
+            self.last_update = pygame.time.get_ticks()
+            self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
+# Classe que representa uma colisão com inimigo
+# Classe que representa uma colisão com inimigo
+class Explosion(pygame.sprite.Sprite):
+    # Construtor da classe.
+    def __init__(self, center, assets, death_sheet):
+        # Construtor da classe mãe (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+        # Redimensiona a superfície corretamente
+        death_sheet = pygame.transform.scale(death_sheet, (largura_inimigo, altura_inimigo))
+        spritesheet = load_spritesheet(death_sheet, 1, 10)
+        self.animations = { # Estabelece possíveis loops de animação
+            EXPLODE: spritesheet[0:4]
+        }
+        self.state = EXPLODE
+        self.animation = self.animations[self.state]
+        self.frame = 0
+        self.image = self.animation[self.frame]
+        self.rect = self.image.get_rect()
+        self.rect.center = center
+        self.last_update = pygame.time.get_ticks()
+        self.frame_ticks = 50  # Ajuste conforme necessário
 
+    def update(self):
+        # Controle de animação
+        now = pygame.time.get_ticks()
+        elapsed_ticks = now - self.last_update
+
+        # Se já está na hora de mudar de imagem...
+        if elapsed_ticks > self.frame_ticks:
+            self.last_update = now
+            self.frame += 1
+            if self.frame >= len(self.animation):
+                self.frame = 0
+                self.kill()  # Remove a explosão após terminar a animação
+
+            self.image = self.animation[self.frame]
+            self.rect = self.image.get_rect(center=self.rect.center)
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
 # É necessário definir quantos sprites estão presentes em cada linha e coluna.
 # Essa função assume que os sprites no sprite sheet possuem todos o mesmo tamanho.
@@ -520,12 +571,16 @@ groups['all_attacks'] = all_attacks
 assets = {}
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
-assets['Meowth'] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
-assets['Meowth'] = pygame.transform.scale(assets['Meowth'], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
+assets['Meowth'] = {}
+assets['Meowth']["walk"] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
+assets['Meowth']["walk"] = pygame.transform.scale(assets['Meowth']["walk"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
+assets['Meowth']["battle"] = pygame.image.load('assets/attack.png').convert_alpha()
+assets['Meowth']["battle"] = pygame.transform.scale(assets['Meowth']["battle"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
+assets['Meowth']["damaged"] = pygame.image.load('assets/damaged.png').convert_alpha()
+assets['Meowth']["damaged"] = pygame.transform.scale(assets['Meowth']["damaged"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
 assets['iceslash'] = pygame.image.load('assets/iceslash.png').convert_alpha()
 assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
-
 assets['whoosh.mp3'] = pygame.mixer.Sound('assets/whoosh.mp3')
 assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
 assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, largura_player))
@@ -601,20 +656,22 @@ while game:
             for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
                 # O meteoro e destruido e precisa ser recriado
                 # assets['destroy_sound'].play()
-                m = Enemy(assets)
+                m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
                 all_sprites.add(m)
                 enemies.add(m)
 
                 # No lugar do meteoro antigo, adicionar uma explosão.
-                #explosao = Explosion(Enemy.rect.center, assets)
-                #all_sprites.add(explosao)
+
+                explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
+                all_sprites.add(explosao)
+
                 
             # Verifica se houve colisão entre nave e meteoro
             hits = pygame.sprite.spritecollide(jogador, enemies, True)
             if len(hits) > 0:
                 # Toca o som da colisão
                 #assets['boom_sound'].play()
-                time.sleep(1) # Precisa esperar senão fecha
+                time.sleep(5) # Precisa esperar senão fecha
 
                 game = False
     # ----- Gera saídas
