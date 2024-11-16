@@ -40,7 +40,7 @@ esquerda_enemy = False
 score = 0
 inim_add = 0
 reforços = 0
-vidas = 1000
+vidas = 3
 
 # Define o jogador
 
