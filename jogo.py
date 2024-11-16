@@ -42,7 +42,7 @@ esquerda_enemy = False
 score = 0
 inim_add = 0
 reforços = 0
-
+vidas = 3
 
 # Define o jogador
 
@@ -542,9 +542,6 @@ def gameover_screen(screen):
                 running = False
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_SPACE:
-                    state = QUIT
-                    running = False
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -647,6 +644,10 @@ assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_p
 assets['death'] = pygame.image.load('assets/death_effect.png').convert_alpha()
 assets['death'] = pygame.transform.scale(assets['death'], (largura_inimigo, altura_inimigo)) # Tamanho da explosão
 assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 28)
+assets['hit'] = pygame.mixer.Sound('assets/hit.mp3')
+assets['lowhealth'] = pygame.mixer.Sound('assets/lowhealth.mp3')
+assets['vida'] = pygame.image.load('assets/vida.png').convert_alpha()
+assets['vida'] = pygame.transform.scale(assets['vida'], (70, 70))
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
@@ -742,10 +743,19 @@ while game:
         hits = pygame.sprite.spritecollide(jogador, enemies, True)
         if len(hits) > 0:
             # Toca o som da colisão
-            #assets['boom_sound'].play()
-            #time.sleep(3) # Precisa esperar senão fecha
-            #game = False
-            state = OVER
+            assets['hit'].play()
+            vidas -= 1
+
+            # Respawn do inimigo
+            for _ in range(len(hits)):
+                m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
+                all_sprites.add(m)
+                enemies.add(m)
+
+            if vidas == 1:
+                assets['lowhealth'].play()
+            if vidas < 1:
+                state = OVER
         
         # Adiciona mais inimigos ao longo do tempo
         if inim_add > reforços:
@@ -763,6 +773,19 @@ while game:
         text_rect = pontos.get_rect()
         text_rect.midtop = ((altura / 2),  45)
         window.blit(pontos, text_rect)
+
+        # Desenhando vidas
+        imgvida = assets['vida']
+        if vidas == 3:
+            window.blit(imgvida, (30, 30))
+            window.blit(imgvida, (100, 30))
+            window.blit(imgvida, (170, 30))
+        elif vidas == 2:
+            window.blit(imgvida, (30, 30))
+            window.blit(imgvida, (100, 30))
+        elif vidas == 1:
+            window.blit(imgvida, (30, 30))
+
         pygame.display.update()  # Mostra o novo frame para o jogador
     elif state == OVER:
         pygame.mixer.music.pause() 
