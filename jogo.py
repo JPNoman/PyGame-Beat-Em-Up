@@ -34,6 +34,10 @@ BLUE = (0, 0, 255)
 YELLOW = (255, 255, 0)
 state = INIT
 esquerda_enemy = False
+score = 0
+inim_add = 0
+reforços = 0
+
 
 # Define o jogador
 
@@ -107,7 +111,7 @@ class player(pygame.sprite.Sprite):
         self.rect.y += self.speedy 
 
         # Mantem dentro da tela
-        ## Esses parametros tem que ser mudados depois pra o player só ficar no chão quando a gente tiver um mapa definido
+        # Esses parametros tem que ser mudados depois pra o player só ficar no chão quando a gente tiver um mapa definido
         if self.rect.right > altura:
             self.rect.right = altura
         if self.rect.left < 0:
@@ -421,6 +425,132 @@ def init_screen(screen):
 
     return state
 
+def instr_screen(screen):
+    # Variável para o ajuste de velocidade
+    clock = pygame.time.Clock()
+    
+    # Carrega o fundo da tela inicial
+    instr1 = pygame.image.load('assets/comojogar.png').convert()
+    instr1_rect = instr1.get_rect()
+    instr1 = pygame.transform.scale(instr1, (altura, largura))
+
+    running = True
+    while running:
+
+        # Ajusta a velocidade do jogo.
+        clock.tick(fps)
+
+        # Processa os eventos (mouse, teclado, botão, etc).
+        for event in pygame.event.get():
+            # Verifica se foi fechado.
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    state = INSTR2
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
+
+        # A cada loop, redesenha o fundo e os sprites
+        screen.fill(BLACK)
+        screen.blit(instr1, instr1_rect)
+
+        # Depois de desenhar tudo, inverte o display.
+        pygame.display.flip()
+
+    return state
+
+def instr_screen2(screen):
+    # Variável para o ajuste de velocidade
+    clock = pygame.time.Clock()
+    
+    # Carrega o fundo da tela inicial
+    instr2 = pygame.image.load('assets/comojogar2.png').convert()
+    instr2_rect = instr2.get_rect()
+    instr2 = pygame.transform.scale(instr2, (altura, largura))
+
+    running = True
+    while running:
+
+        # Ajusta a velocidade do jogo.
+        clock.tick(fps)
+
+        # Processa os eventos (mouse, teclado, botão, etc).
+        for event in pygame.event.get():
+            # Verifica se foi fechado.
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    state = GAME
+                    running = False
+                    pygame.mixer.music.pause()
+                    pygame.mixer.music.load('assets/Battle!.mp3')
+                    pygame.mixer.music.set_volume(0.4)
+                    pygame.mixer.music.play(loops=-1)
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
+
+        # A cada loop, redesenha o fundo e os sprites
+        screen.fill(BLACK)
+        screen.blit(instr2, instr2_rect)
+
+        # Depois de desenhar tudo, inverte o display.
+        pygame.display.flip()
+
+    return state
+
+def gameover_screen(screen):
+    # Variável para o ajuste de velocidade
+    clock = pygame.time.Clock()
+    
+    # Carrega o fundo da tela inicial
+    gameover = pygame.image.load('assets/gameover.png').convert()
+    gameover_rect = gameover.get_rect()
+    gameover = pygame.transform.scale(gameover, (altura, largura))
+
+    running = True
+    while running:
+
+        # Ajusta a velocidade do jogo.
+        clock.tick(fps)
+
+        # Processa os eventos (mouse, teclado, botão, etc).
+        for event in pygame.event.get():
+            # Verifica se foi fechado.
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    state = QUIT
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
+
+        # A cada loop, redesenha o fundo e os sprites
+        screen.fill(BLACK)
+        screen.blit(gameover, gameover_rect)
+        assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 50)
+        pontos = assets['score_font'].render("{:08d}".format(score), True, WHITE)
+        text_rect = pontos.get_rect()
+        text_rect.midtop = ((altura / 2) + 350,  460)
+        window.blit(pontos, text_rect)
+
+        # Depois de desenhar tudo, inverte o display.
+        pygame.display.flip()
+
+    return state
+
 def game_screen(screen):
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
@@ -502,6 +632,7 @@ assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alph
 assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, altura_player))
 assets['death'] = pygame.image.load('assets/death_effect.png').convert_alpha()
 assets['death'] = pygame.transform.scale(assets['death'], (largura_inimigo, altura_inimigo)) # Tamanho da explosão
+assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 28)
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
@@ -577,65 +708,31 @@ while game:
                 explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
                 all_sprites.add(explosao)
                 
-            # Verifica se houve colisão entre nave e meteoro
-            hits = pygame.sprite.spritecollide(jogador, enemies, True)
-            if len(hits) > 0:
-                # Toca o som da colisão
-                #assets['boom_sound'].play()
-                time.sleep(5) # Precisa esperar senão fecha
-
-                game = False
-    # ----- Gera saídas
-    all_sprites.update()
-    window.fill((0, 0, 0))  # Preenche com a cor preta 
-    window.blit(image, (0, 0))
-    all_sprites.draw(window)
-    pygame.display.update()  # Mostra o novo frame para o jogador
-    
-    if state == INIT:
-        state = init_screen(window)
-    elif state == GAME:
-        clock.tick(fps)
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                game = False
-    # Só verifica o teclado se está no estado de jogo
-            if game == True:
-                # Verifica se apertou alguma tecla.
-                if event.type == pygame.KEYDOWN:
-                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                    if event.key == pygame.K_a:
-                        jogador.speedx -= 5
-                        direita = False
-                    if event.key == pygame.K_d:
-                        jogador.speedx += 5
-                        direita = True
-                    if event.key == pygame.K_w:
-                        jogador.speedy -= 5
-                    if event.key == pygame.K_s:
-                        jogador.speedy += 5
-                    if event.key == pygame.K_SPACE:
-                        jogador.atacar()
-                    if event.key == pygame.K_q:
-                        jogador.ultar()
-                    if event.key == pygame.K_ESCAPE:
-                        game = False
-                # Verifica se soltou alguma tecla.
-                if event.type == pygame.KEYUP:
-                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                    if event.key == pygame.K_a:
-                        jogador.speedx += 5
-                    if event.key == pygame.K_d:
-                        jogador.speedx -= 5
-                    if event.key == pygame.K_w:
-                        jogador.speedy += 5
-                    if event.key == pygame.K_s:
-                        jogador.speedy -= 5
+        # Verifica se houve colisão entre nave e meteoro
+        hits = pygame.sprite.spritecollide(jogador, enemies, True)
+        if len(hits) > 0:
+            # Toca o som da colisão
+            #assets['boom_sound'].play()
+            #time.sleep(3) # Precisa esperar senão fecha
+            #game = False
+            state = OVER
+        
+        # Adiciona mais inimigos ao longo do tempo
+        if inim_add > reforços:
+            reforços = inim_add
+            m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
+            all_sprites.add(m)
+            enemies.add(m)
         # ----- Gera saídas
         all_sprites.update()
         window.fill((0, 0, 0))  # Preenche com a cor preta 
         window.blit(image, (0, 0))
         all_sprites.draw(window)
+        # Desenha o score
+        pontos = assets['score_font'].render("{:08d}".format(score), True, WHITE)
+        text_rect = pontos.get_rect()
+        text_rect.midtop = ((altura / 2),  45)
+        window.blit(pontos, text_rect)
         pygame.display.update()  # Mostra o novo frame para o jogador
 
     
