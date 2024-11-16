@@ -7,14 +7,14 @@ import time
 from os import path
 
 # Define parametros
-largura = 900 # O tamanho da janela tem que ser ajustado pro tamanho certo ainda
+largura = 900 ## O tamanho da janela tem que ser ajustado pro tamanho certo ainda
 altura = 1550
 fps = 60
 clock = pygame.time.Clock()
 altura_player = 170
-largura_player = 270
-altura_inimigo = 120
-largura_inimigo = 310
+largura_player = 270 # Olha eu acho que a altura e largura do player estõ invertidas, mas não mudei nada pra não quebrar nada
+altura_inimigo = 120 
+largura_inimigo = 400
 STILL = 0
 WALK = 'walk'
 EXPLODE = 'explode'
@@ -25,6 +25,9 @@ direita = True # Estabelece pra que lado o jogador está olhando no começo do j
 INIT = 0
 GAME = 1
 QUIT = 2
+INSTR = 3
+INSTR2 = 4
+OVER = 5
 # Define algumas variáveis com as cores básicas
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -37,7 +40,7 @@ esquerda_enemy = False
 score = 0
 inim_add = 0
 reforços = 0
-
+vidas = 1000
 
 # Define o jogador
 
@@ -111,7 +114,7 @@ class player(pygame.sprite.Sprite):
         self.rect.y += self.speedy 
 
         # Mantem dentro da tela
-        # Esses parametros tem que ser mudados depois pra o player só ficar no chão quando a gente tiver um mapa definido
+        ## Esses parametros tem que ser mudados depois pra o player só ficar no chão quando a gente tiver um mapa definido
         if self.rect.right > altura:
             self.rect.right = altura
         if self.rect.left < 0:
@@ -153,7 +156,7 @@ class player(pygame.sprite.Sprite):
                 ataque = ult(self.assets, self.rect.bottom, self.rect.centerx + 40)
             self.groups['all_sprites'].add(ataque)
             self.groups['all_attacks'].add(ataque)
-            self.assets['ice.mp3'].play()
+            self.assets['whoosh.mp3'].play()
 
 # Define um golpe básico
 
@@ -164,6 +167,8 @@ class golpe(pygame.sprite.Sprite):
         pygame.sprite.Sprite.__init__(self)
 
         self.image = assets['iceslash']
+        if not direita:
+            self.image = pygame.transform.flip(assets['iceslash'], True, False)
         self.mask = pygame.mask.from_surface(self.image)
         self.rect = self.image.get_rect()
 
@@ -203,7 +208,7 @@ class ult(pygame.sprite.Sprite):
             self.speedx = -10
         self.speedy = 0
 
-        # Grava quando o ataque é criado
+        # Grava quando a ult é criada
         self.last_shot = pygame.time.get_ticks()
     
     def update(self):
@@ -222,7 +227,7 @@ class Enemy(pygame.sprite.Sprite):
 
         # Carregar e redimensionar o spritesheet
         self.spritesheet = self.load_spritesheet(enemy_sheet['walk'], 1, 8)  # Ajuste para 8 frames
-        self.spritesheet_bat = self.load_spritesheet(enemy_sheet['battle'], 1, 12)  # Ajuste para 12 frames
+        self.spritesheet_bat = self.load_spritesheet(enemy_sheet['battle'], 1, 4)  # Ajuste para 12 frames
 
         # Configuração da animação
         self.animation = {
@@ -239,23 +244,26 @@ class Enemy(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
 
         # Posicionar o inimigo em uma borda aleatória
-        spawn_edge = random.choice(["top", "bottom", "left", "right"])
-        if spawn_edge == "top":
-            self.rect.x = random.randint(0, largura - self.rect.width)
-            self.rect.y = -self.rect.height
-        elif spawn_edge == "bottom":
-            self.rect.x = random.randint(0, largura - self.rect.width)
-            self.rect.y = altura
-        elif spawn_edge == "left":
-            self.rect.x = -self.rect.width
+        spawn_edge = random.choice(["left", "right"])
+        if spawn_edge == "left":
+            self.rect.x = 0
             self.rect.y = random.randint(0, altura - self.rect.height)
         elif spawn_edge == "right":
-            self.rect.x = largura
+            self.rect.x = altura 
             self.rect.y = random.randint(0, altura - self.rect.height)
 
-        self.speedx = 0
-        self.speedy = 0
+        self.speedx = random.randint(2,5)
+        self.speedy = self.speedx
         self.player = player
+
+        if self.rect.right > altura:
+            self.rect.right = altura
+        if self.rect.left < 0:
+            self.rect.left = 0 
+        if self.rect.bottom > largura:
+            self.rect.bottom = largura
+        if self.rect.top < 0 + 700:
+            self.rect.top = 0 + 700
         
 
     def load_spritesheet(self, sheet, rows, cols):
@@ -300,8 +308,8 @@ class Enemy(pygame.sprite.Sprite):
             direction_y = (player_y - enemy_y) / distance
 
             # Ajustar a velocidade
-            self.speedx = direction_x * 1.5
-            self.speedy = direction_y * 1.5
+            self.speedx = direction_x * 3.5
+            self.speedy = direction_y * 3.5
 
         if now - self.last_update > self.frame_rate:
             self.last_update = now
@@ -315,13 +323,8 @@ class Enemy(pygame.sprite.Sprite):
         # Atualizar posição
         self.rect.x += self.speedx
         self.rect.y += self.speedy
-        if distance < largura_player/2:
+        if distance < largura_player/3.5:
             self.state = BATTLE
-            self.frame = 0
-            self.last_update = pygame.time.get_ticks()
-            self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
-        else:
-            self.state = WALK
             self.frame = 0
             self.last_update = pygame.time.get_ticks()
             self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
@@ -362,9 +365,6 @@ class Explosion(pygame.sprite.Sprite):
 
             self.image = self.animation[self.frame]
             self.rect = self.image.get_rect(center=self.rect.center)
-
-
-
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
 # É necessário definir quantos sprites estão presentes em cada linha e coluna.
 # Essa função assume que os sprites no sprite sheet possuem todos o mesmo tamanho.
@@ -393,7 +393,7 @@ def load_spritesheet(spritesheet, rows, columns):
 def init_screen(screen):
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
-
+    
     # Carrega o fundo da tela inicial
     inicial = pygame.image.load('assets/inspermonpng.png').convert()
     inicial_rect = inicial.get_rect()
@@ -413,8 +413,12 @@ def init_screen(screen):
                 running = False
 
             if event.type == pygame.KEYUP:
-                state = GAME
-                running = False
+                if event.key == pygame.K_SPACE:
+                    state = INSTR
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
 
         # A cada loop, redesenha o fundo e os sprites
         screen.fill(BLACK)
@@ -530,9 +534,6 @@ def gameover_screen(screen):
                 running = False
 
             if event.type == pygame.KEYUP:
-                if event.key == pygame.K_SPACE:
-                    state = QUIT
-                    running = False
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -605,7 +606,7 @@ image = pygame.transform.scale(image, (altura, largura))
 # Sons do jogo
 ## Atualizar com música de menu, sound effects, etc
 
-pygame.mixer.music.load('assets/Battle!.mp3')
+pygame.mixer.music.load('assets/galactic.mp3')
 pygame.mixer.music.set_volume(0.4)
 pygame.mixer.music.play(loops=-1)
 
@@ -627,12 +628,16 @@ assets['Meowth']["battle"] = pygame.transform.scale(assets['Meowth']["battle"], 
 assets['iceslash'] = pygame.image.load('assets/iceslash.png').convert_alpha()
 assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
-
+assets['whoosh.mp3'] = pygame.mixer.Sound('assets/whoosh.mp3')
 assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
-assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, altura_player))
+assets['ultfroslass'] = pygame.transform.scale(assets['ultfroslass'], (largura_player, largura_player))
 assets['death'] = pygame.image.load('assets/death_effect.png').convert_alpha()
 assets['death'] = pygame.transform.scale(assets['death'], (largura_inimigo, altura_inimigo)) # Tamanho da explosão
 assets["score_font"] = pygame.font.Font('assets/fonte.ttf', 28)
+assets['hit'] = pygame.mixer.Sound('assets/hit.mp3')
+assets['lowhealth'] = pygame.mixer.Sound('assets/lowhealth.mp3')
+assets['vida'] = pygame.image.load('assets/vida.png').convert_alpha()
+assets['vida'] = pygame.transform.scale(assets['vida'], (70, 70))
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
@@ -652,70 +657,95 @@ for _ in range(5):  # Ajusta a quantidade de inimigos
 
 game = True
 while game:
-    clock.tick(fps)
-    for event in pygame.event.get():
-        if event.type == pygame.QUIT:
-            game = False
-# Só verifica o teclado se está no estado de jogo
-        if game == True:
-            # Verifica se apertou alguma tecla.
-            if event.type == pygame.KEYDOWN:
-                # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                if event.key == pygame.K_a:
-                    jogador.speedx -= 6
-                    ataque_atual.speedx -= 6
-                    direita = False
-                if event.key == pygame.K_d:
-                    jogador.speedx += 6
-                    ataque_atual.speedx += 6
-                    direita = True
-                if event.key == pygame.K_w:
-                    jogador.speedy -= 6
-                    ataque_atual.speedy -= 6
-                if event.key == pygame.K_s:
-                    jogador.speedy += 6
-                    ataque_atual.speedy += 6
-                if event.key == pygame.K_SPACE:
-                    jogador.atacar()
-                if event.key == pygame.K_ESCAPE:
-                    game = False
-            # Verifica se soltou alguma tecla.
-            if event.type == pygame.KEYUP:
-                # Dependendo da tecla, altera a velocidade do jogador e ataque.
-                if event.key == pygame.K_a:
-                    jogador.speedx += 6
-                    ataque_atual.speedx += 6
-                if event.key == pygame.K_d:
-                    jogador.speedx -= 6
-                    ataque_atual.speedx -= 6
-                if event.key == pygame.K_w:
-                    jogador.speedy += 6
-                    ataque_atual.speedy += 6
-                if event.key == pygame.K_s:
-                    jogador.speedy -= 6
-                    ataque_atual.speedy -= 6
+    if state == INIT:
+        state = init_screen(window)
+    elif state == INSTR:
+        state = instr_screen(window)
+    elif state == INSTR2:
+        state = instr_screen2(window)
+    elif state == GAME:
+        clock.tick(fps)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game = False
+    # Só verifica o teclado se está no estado de jogo
+            if game == True:
+                # Verifica se apertou alguma tecla.
+                if event.type == pygame.KEYDOWN:
+                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                    if event.key == pygame.K_a:
+                        jogador.speedx -= 6
+                        ataque_atual.speedx -= 6
+                        direita = False
+                    if event.key == pygame.K_d:
+                        jogador.speedx += 6
+                        ataque_atual.speedx += 6
+                        direita = True
+                    if event.key == pygame.K_w:
+                        jogador.speedy -= 6
+                        ataque_atual.speedy -= 6
+                    if event.key == pygame.K_s:
+                        jogador.speedy += 6
+                        ataque_atual.speedy += 6
+                    if event.key == pygame.K_SPACE:
+                        jogador.atacar()
+                    if event.key == pygame.K_ESCAPE:
+                        game = False
+                # Verifica se soltou alguma tecla.
+                if event.type == pygame.KEYUP:
+                    # Dependendo da tecla, altera a velocidade do jogador e ataque.
+                    if event.key == pygame.K_a:
+                        jogador.speedx += 6
+                        ataque_atual.speedx += 6
+                    if event.key == pygame.K_d:
+                        jogador.speedx -= 6
+                        ataque_atual.speedx -= 6
+                    if event.key == pygame.K_w:
+                        jogador.speedy += 6
+                        ataque_atual.speedy += 6
+                    if event.key == pygame.K_s:
+                        jogador.speedy -= 6
+                        ataque_atual.speedy -= 6
+                    if event.key == pygame.K_q:
+                            jogador.ultar()
+                    if event.key == pygame.K_ESCAPE:
+                            game = False
 
             # Verifica se houve colisão entre tiro e meteoro
-            hits = pygame.sprite.groupcollide(enemies, all_attacks, True, True)
-            for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
-                # O meteoro e destruido e precisa ser recriado
-                # assets['destroy_sound'].play()
-                m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
-                all_sprites.add(m)
-                enemies.add(m)
+        hits = pygame.sprite.groupcollide(enemies, all_attacks, True, False)
+        for meteor in hits: # As chaves são os elementos do primeiro grupo (meteoros) que colidiram com alguma bala
+            # O meteoro e destruido e precisa ser recriado
+            # assets['destroy_sound'].play()
+            m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
+            all_sprites.add(m)
+            enemies.add(m)
 
-                # No lugar do meteoro antigo, adicionar uma explosão.
-                explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
-                all_sprites.add(explosao)
+            # No lugar do meteoro antigo, adicionar uma explosão.
+
+            explosao = Explosion(meteor.rect.center, assets, death_sheet=assets['death'])
+            all_sprites.add(explosao)
+
+            # Atualiza score
+            score += 100
+            inim_add = score // 1000
                 
         # Verifica se houve colisão entre nave e meteoro
         hits = pygame.sprite.spritecollide(jogador, enemies, True)
         if len(hits) > 0:
             # Toca o som da colisão
-            #assets['boom_sound'].play()
-            #time.sleep(3) # Precisa esperar senão fecha
-            #game = False
-            state = OVER
+            assets['hit'].play()
+            vidas -= 1
+
+            # Respawn do inimigo
+            for _ in range(len(hits)):
+                m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
+                all_sprites.add(m)
+                enemies.add(m)
+
+            if vidas == 1:
+                assets['lowhealth'].play()
+            if vidas < 1:
+                state = OVER
         
         # Adiciona mais inimigos ao longo do tempo
         if inim_add > reforços:
@@ -733,9 +763,31 @@ while game:
         text_rect = pontos.get_rect()
         text_rect.midtop = ((altura / 2),  45)
         window.blit(pontos, text_rect)
-        pygame.display.update()  # Mostra o novo frame para o jogador
 
-    
+        # Desenhando vidas
+        imgvida = assets['vida']
+        if vidas == 3:
+            window.blit(imgvida, (30, 30))
+            window.blit(imgvida, (100, 30))
+            window.blit(imgvida, (170, 30))
+        elif vidas == 2:
+            window.blit(imgvida, (30, 30))
+            window.blit(imgvida, (100, 30))
+        elif vidas == 1:
+            window.blit(imgvida, (30, 30))
+
+        pygame.display.update()  # Mostra o novo frame para o jogador
+    elif state == OVER:
+        pygame.mixer.music.pause() 
+        pygame.mixer.music.load('assets/gameover.mp3')
+        pygame.mixer.music.set_volume(0.4)
+        pygame.mixer.music.play(loops=-1)
+        clock.tick(fps)
+        state = gameover_screen(window)
+        pygame.display.update()  # Mostra o novo frame para o jogador
+    elif state == QUIT:
+        pygame.quit()
+
 # Fecha o jogo
 
 pygame.quit()
