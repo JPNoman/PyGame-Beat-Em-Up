@@ -1,5 +1,4 @@
 # Inicia o jogo e importa coisas
-
 import pygame
 pygame.init()
 import random
@@ -13,7 +12,7 @@ altura = 1550
 fps = 60
 clock = pygame.time.Clock()
 altura_player = 170
-largura_player = 270 ######## Olha eu acho que a altura e largura do player estõ invertidas, mas não mudei nada pra não quebrar nada
+largura_player = 270 # Olha eu acho que a altura e largura do player estõ invertidas, mas não mudei nada pra não quebrar nada
 altura_inimigo = 120 
 largura_inimigo = 400
 STILL = 0
@@ -21,7 +20,6 @@ WALK = 'walk'
 EXPLODE = 'explode'
 ATTACK = 'attack'
 BATTLE = 'battle'
-DAMAGED = 'damaged'
 img_dir = path.join(path.dirname(__file__), 'assets')
 direita = True # Estabelece pra que lado o jogador está olhando no começo do jogo
 INIT = 0
@@ -42,7 +40,7 @@ esquerda_enemy = False
 score = 0
 inim_add = 0
 reforços = 0
-vidas = 3
+vidas = 1000
 
 # Define o jogador
 
@@ -229,14 +227,12 @@ class Enemy(pygame.sprite.Sprite):
 
         # Carregar e redimensionar o spritesheet
         self.spritesheet = self.load_spritesheet(enemy_sheet['walk'], 1, 8)  # Ajuste para 8 frames
-        self.spritesheet_bat = self.load_spritesheet(enemy_sheet['battle'], 1, 12)  # Ajuste para 12 frames
-        self.spritesheet_dam = self.load_spritesheet(enemy_sheet['damaged'], 1, 5)  # Ajuste para 5 frames
+        self.spritesheet_bat = self.load_spritesheet(enemy_sheet['battle'], 1, 4)  # Ajuste para 12 frames
 
         # Configuração da animação
         self.animation = {
             WALK: self.spritesheet,
             BATTLE: self.spritesheet_bat,
-            DAMAGED: self.spritesheet_dam
         }
         self.state = WALK
         self.frame = 0
@@ -327,16 +323,12 @@ class Enemy(pygame.sprite.Sprite):
         # Atualizar posição
         self.rect.x += self.speedx
         self.rect.y += self.speedy
-        if distance < largura_player/2:
+        if distance < largura_player/3.5:
             self.state = BATTLE
             self.frame = 0
             self.last_update = pygame.time.get_ticks()
             self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
-        else:
-            self.state = WALK
-            self.frame = 0
-            self.last_update = pygame.time.get_ticks()
-            self.frame_rate = 100  # Troca de frame a cada 100 ms (ajuste conforme necessário)
+
 # Classe que representa uma colisão com inimigo
 class Explosion(pygame.sprite.Sprite):
     # Construtor da classe.
@@ -660,8 +652,6 @@ assets['Meowth']["walk"] = pygame.image.load('assets/meowth_walk.png').convert_a
 assets['Meowth']["walk"] = pygame.transform.scale(assets['Meowth']["walk"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
 assets['Meowth']["battle"] = pygame.image.load('assets/attack.png').convert_alpha()
 assets['Meowth']["battle"] = pygame.transform.scale(assets['Meowth']["battle"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
-assets['Meowth']["damaged"] = pygame.image.load('assets/damaged.png').convert_alpha()
-assets['Meowth']["damaged"] = pygame.transform.scale(assets['Meowth']["damaged"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
 assets['iceslash'] = pygame.image.load('assets/iceslash.png').convert_alpha()
 assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
