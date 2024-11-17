@@ -426,7 +426,7 @@ def init_screen(screen):
     clock = pygame.time.Clock()
     
     # Carrega o fundo da tela inicial
-    inicial = pygame.image.load('assets/inspermonpng.png').convert()
+    inicial = pygame.image.load('assets/inspermon.png').convert()
     inicial_rect = inicial.get_rect()
     inicial = pygame.transform.scale(inicial, (altura, largura))
 
