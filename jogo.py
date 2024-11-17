@@ -42,6 +42,9 @@ score = 0
 inim_add = 0
 reforços = 0
 vidas = 3
+last_ult = 0
+ult_ticks = 5000
+agora = 0
 
 # Define o jogador
 
@@ -712,7 +715,25 @@ assets['vida'] = pygame.transform.scale(assets['vida'], (70, 70))
 assets['gastly'] = pygame.image.load('assets/gastly.png').convert_alpha()
 assets['gastly'] = pygame.transform.scale(assets['gastly'], (50, 50))
 assets['ok'] = pygame.mixer.Sound('assets/ok.mp3')
+assets['ultcd1'] = pygame.image.load('assets/ultcd1.png').convert_alpha()
+assets['ultcd1'] = pygame.transform.scale(assets['ultcd1'], (170, 170))
+assets['ultcd2'] = pygame.image.load('assets/ultcd2.png').convert_alpha()
+assets['ultcd2'] = pygame.transform.scale(assets['ultcd2'], (170, 170))
+assets['ultcd3'] = pygame.image.load('assets/ultcd3.png').convert_alpha()
+assets['ultcd3'] = pygame.transform.scale(assets['ultcd3'], (170, 170))
+assets['ultcd4'] = pygame.image.load('assets/ultcd4.png').convert_alpha()
+assets['ultcd4'] = pygame.transform.scale(assets['ultcd4'], (170, 170))
+assets['ultcd5'] = pygame.image.load('assets/ultcd5.png').convert_alpha()
+assets['ultcd5'] = pygame.transform.scale(assets['ultcd5'], (170, 170))
+assets['ultcd0'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
+assets['ultcd0'] = pygame.transform.scale(assets['ultcd0'], (170, 170))
 
+ultcd1 = assets['ultcd1']
+ultcd2 = assets['ultcd2']
+ultcd3 = assets['ultcd3']
+ultcd4 = assets['ultcd4']
+ultcd5 = assets['ultcd5']
+ultcd0 = assets['ultcd0']
 # Cria o player
 jogador = player(groups, assets['froslass'])
 all_sprites.add(jogador)
@@ -771,6 +792,16 @@ while game:
                         ataque_atual.speedy += 6
                     if event.key == pygame.K_SPACE:
                         jogador.atacar()
+                    if event.key == pygame.K_q:
+                        jogador.ultar()
+                        agora = pygame.time.get_ticks()
+                        # Verifica quantos ticks se passaram desde o último ataque.
+                        elapsed_ticks = agora - last_ult
+
+                        # Se já pode atacar novamente...
+                        if elapsed_ticks > ult_ticks:
+                        # Marca o tick da nova imagem.
+                            last_ult = agora
                     if event.key == pygame.K_ESCAPE:
                         game = False
                 # Verifica se soltou alguma tecla.
@@ -788,8 +819,6 @@ while game:
                     if event.key == pygame.K_s:
                         jogador.speedy -= 6
                         ataque_atual.speedy -= 6
-                    if event.key == pygame.K_q:
-                            jogador.ultar()
                     if event.key == pygame.K_ESCAPE:
                             game = False
 
@@ -879,6 +908,21 @@ while game:
         elif vidas == 1:
             window.blit(imgvida, (30, 30))
 
+        agora2 = pygame.time.get_ticks()
+        elapsed_ticks2 = agora2 - last_ult
+        if elapsed_ticks2 < 5000:
+            if elapsed_ticks2 < 1000:
+                window.blit(ultcd5, (1300, 30))
+            elif elapsed_ticks2 < 2000:
+                window.blit(ultcd4, (1300, 30))
+            elif elapsed_ticks2 < 3000:
+                window.blit(ultcd3, (1300, 30))
+            elif elapsed_ticks2 < 4000:
+                window.blit(ultcd2, (1300, 30))
+            elif elapsed_ticks2 < 5000:
+                window.blit(ultcd1, (1300, 30))
+        else:
+            window.blit(ultcd0, (1300, 30))
         pygame.display.update()  # Mostra o novo frame para o jogador
     elif state == OVER:
         pygame.mixer.music.pause() 
@@ -889,7 +933,7 @@ while game:
         state = gameover_screen(window)
         pygame.display.update()  # Mostra o novo frame para o jogador
     elif state == QUIT:
-        pygame.quit()
+        game = False
 
 # Fecha o jogo
 
