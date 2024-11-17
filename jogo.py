@@ -27,6 +27,7 @@ GAME = 1
 QUIT = 2
 INSTR = 3
 INSTR2 = 4
+INSTR3 = 6
 OVER = 5
 # Define algumas variáveis com as cores básicas
 WHITE = (255, 255, 255)
@@ -40,7 +41,7 @@ esquerda_enemy = False
 score = 0
 inim_add = 0
 reforços = 0
-vidas = 1000
+vidas = 3
 
 # Define o jogador
 
@@ -69,11 +70,11 @@ class player(pygame.sprite.Sprite):
         # Controle de ticks de animação: troca de imagem a cada self.frame_ticks milissegundos.
         self.frame_ticks = 150  # Prestar atenção nesse parametro, pode mudar a velocidade do jogo
 
-        # Só será possível atacar uma vez a cada 600 milissegundos
+        # Só será possível atacar uma vez a cada 500 milissegundos
         self.last_shot = pygame.time.get_ticks()
-        self.shoot_ticks = 600
+        self.shoot_ticks = 500
         self.last_ult = pygame.time.get_ticks()
-        self.ult_ticks = 4000
+        self.ult_ticks = 5000
 
     def update(self):
         # Verifica o tick atual.
@@ -519,6 +520,45 @@ def instr_screen2(screen):
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
+                    state = INSTR3
+                    running = False
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
+
+        # A cada loop, redesenha o fundo e os sprites
+        screen.fill(BLACK)
+        screen.blit(instr2, instr2_rect)
+
+        # Depois de desenhar tudo, inverte o display.
+        pygame.display.flip()
+
+    return state
+
+def instr_screen3(screen):
+    # Variável para o ajuste de velocidade
+    clock = pygame.time.Clock()
+    
+    # Carrega o fundo da tela inicial
+    instr3 = pygame.image.load('assets/comojogar3.png').convert()
+    instr3_rect = instr3.get_rect()
+    instr3 = pygame.transform.scale(instr3, (altura, largura))
+
+    running = True
+    while running:
+
+        # Ajusta a velocidade do jogo.
+        clock.tick(fps)
+
+        # Processa os eventos (mouse, teclado, botão, etc).
+        for event in pygame.event.get():
+            # Verifica se foi fechado.
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
                     state = GAME
                     running = False
                     pygame.mixer.music.pause()
@@ -531,7 +571,7 @@ def instr_screen2(screen):
 
         # A cada loop, redesenha o fundo e os sprites
         screen.fill(BLACK)
-        screen.blit(instr2, instr2_rect)
+        screen.blit(instr3, instr3_rect)
 
         # Depois de desenhar tudo, inverte o display.
         pygame.display.flip()
@@ -683,7 +723,7 @@ for _ in range(5):  # Ajusta a quantidade de inimigos
     enemies.add(new_enemy)
 
 hazards = pygame.sprite.Group()
-for i in range(6):
+for i in range(1):
     meteor = gastly(assets)
     all_sprites.add(meteor)
     hazards.add(meteor)
@@ -698,6 +738,8 @@ while game:
         state = instr_screen(window)
     elif state == INSTR2:
         state = instr_screen2(window)
+    elif state == INSTR3:
+        state = instr_screen3(window)
     elif state == GAME:
         clock.tick(fps)
         for event in pygame.event.get():
@@ -805,6 +847,10 @@ while game:
             m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
             all_sprites.add(m)
             enemies.add(m)
+            meteor = gastly(assets)
+            all_sprites.add(meteor)
+            hazards.add(meteor)
+
         # ----- Gera saídas
         all_sprites.update()
         window.fill((0, 0, 0))  # Preenche com a cor preta 
