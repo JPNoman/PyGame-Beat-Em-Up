@@ -444,6 +444,7 @@ def init_screen(screen):
                 if event.key == pygame.K_SPACE:
                     state = INSTR
                     running = False
+                    assets['ok'].play()
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -483,6 +484,7 @@ def instr_screen(screen):
                 if event.key == pygame.K_SPACE:
                     state = INSTR2
                     running = False
+                    assets['ok'].play()
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -522,6 +524,7 @@ def instr_screen2(screen):
                 if event.key == pygame.K_SPACE:
                     state = INSTR3
                     running = False
+                    assets['ok'].play()
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -565,6 +568,7 @@ def instr_screen3(screen):
                     pygame.mixer.music.load('assets/Battle!.mp3')
                     pygame.mixer.music.set_volume(0.4)
                     pygame.mixer.music.play(loops=-1)
+                    assets['ok'].play()
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -693,7 +697,7 @@ assets['Meowth']["walk"] = pygame.transform.scale(assets['Meowth']["walk"], (lar
 assets['Meowth']["battle"] = pygame.image.load('assets/attack.png').convert_alpha()
 assets['Meowth']["battle"] = pygame.transform.scale(assets['Meowth']["battle"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
 assets['iceslash'] = pygame.image.load('assets/iceslash.png').convert_alpha()
-assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player, altura_player))
+assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player - 20, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
 assets['whoosh.mp3'] = pygame.mixer.Sound('assets/whoosh.mp3')
 assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
@@ -707,6 +711,7 @@ assets['vida'] = pygame.image.load('assets/vida.png').convert_alpha()
 assets['vida'] = pygame.transform.scale(assets['vida'], (70, 70))
 assets['gastly'] = pygame.image.load('assets/gastly.png').convert_alpha()
 assets['gastly'] = pygame.transform.scale(assets['gastly'], (50, 50))
+assets['ok'] = pygame.mixer.Sound('assets/ok.mp3')
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
@@ -804,7 +809,7 @@ while game:
 
             # Atualiza score
             score += 100
-            inim_add = score // 1000
+            inim_add = score // 3000
                 
         # Verifica se houve colisão entre nave e meteoro
         hits = pygame.sprite.spritecollide(jogador, enemies, True)
