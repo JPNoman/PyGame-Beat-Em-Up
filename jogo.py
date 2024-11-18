@@ -28,6 +28,7 @@ QUIT = 2
 INSTR = 3
 INSTR2 = 4
 INSTR3 = 6
+SELEC = 8
 OVER = 5
 # Define algumas variáveis com as cores básicas
 WHITE = (255, 255, 255)
@@ -565,6 +566,43 @@ def instr_screen3(screen):
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
+                    state = SELEC
+                    running = False
+                    assets['ok'].play()
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
+
+        # A cada loop, redesenha o fundo e os sprites
+        screen.fill(BLACK)
+        screen.blit(instr3, instr3_rect)
+
+        # Depois de desenhar tudo, inverte o display.
+        pygame.display.flip()
+    return state
+def selecao_screen(screen):
+    # Variável para o ajuste de velocidade
+    clock = pygame.time.Clock()
+
+    # Carrega o fundo da tela de seleção
+    selecao = pygame.image.load('assets/Selecao.png').convert()
+    selecao_rect = selecao.get_rect()
+    selecao = pygame.transform.scale(selecao, (altura, largura))
+
+    running = True
+    while running:
+        # Ajusta a velocidade do jogo
+        clock.tick(fps)
+
+        # Processa os eventos (mouse, teclado, botão, etc.)
+        for event in pygame.event.get():
+            # Verifica se foi fechado
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:  # Supondo que SPACE confirma o Pokémon
                     state = GAME
                     running = False
                     pygame.mixer.music.pause()
@@ -576,11 +614,11 @@ def instr_screen3(screen):
                     state = QUIT
                     running = False
 
-        # A cada loop, redesenha o fundo e os sprites
+        # A cada loop, redesenha o fundo
         screen.fill(BLACK)
-        screen.blit(instr3, instr3_rect)
+        screen.blit(selecao, selecao_rect)
 
-        # Depois de desenhar tudo, inverte o display.
+        # Depois de desenhar tudo, inverte o display
         pygame.display.flip()
 
     return state
@@ -632,6 +670,8 @@ def game_screen(screen):
 
     # Carrega spritesheet
     player_sheet = pygame.image.load(path.join(img_dir, 'froslass_idle.png')).convert_alpha()
+    #player_sheet = pygame.image.load(path.join(img_dir, 'tepig.png')).convert_alpha()
+
 
     # Cria Sprite do jogador
     player = player(player_sheet)
@@ -694,6 +734,10 @@ groups['all_attacks'] = all_attacks
 assets = {}
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
+
+assets['tepig'] = pygame.image.load('assets/Tepig.png').convert_alpha()
+assets['tepig'] = pygame.transform.scale(assets['tepig'], (largura_player, altura_player))
+
 assets['Meowth'] = {}
 assets['Meowth']["walk"] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
 assets['Meowth']["walk"] = pygame.transform.scale(assets['Meowth']["walk"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
@@ -736,6 +780,8 @@ ultcd5 = assets['ultcd5']
 ultcd0 = assets['ultcd0']
 # Cria o player
 jogador = player(groups, assets['froslass'])
+# jogador = player(groups, assets['tepig'])
+
 all_sprites.add(jogador)
 ataque_atual = golpe(assets,0,0)
 all_attacks.add(ataque_atual)
@@ -766,6 +812,8 @@ while game:
         state = instr_screen2(window)
     elif state == INSTR3:
         state = instr_screen3(window)
+    elif state == SELEC:
+        state = selecao_screen(window)
     elif state == GAME:
         clock.tick(fps)
         for event in pygame.event.get():
