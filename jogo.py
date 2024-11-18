@@ -590,6 +590,7 @@ def selecao_screen(screen):
     selecao = pygame.transform.scale(selecao, (altura, largura))
 
     running = True
+    state = SELEC  # Define o estado inicial para seleção
     while running:
         # Ajusta a velocidade do jogo
         clock.tick(fps)
@@ -601,8 +602,10 @@ def selecao_screen(screen):
                 state = QUIT
                 running = False
 
-            if event.type == pygame.KEYUP:
-                if event.key == pygame.K_SPACE:  # Supondo que SPACE confirma o Pokémon
+            # Verifica se alguma tecla foi pressionada
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+
                     state = GAME
                     running = False
                     pygame.mixer.music.pause()
@@ -610,7 +613,34 @@ def selecao_screen(screen):
                     pygame.mixer.music.set_volume(0.4)
                     pygame.mixer.music.play(loops=-1)
                     assets['ok'].play()
-                if event.key == pygame.K_ESCAPE:
+                elif event.key == pygame.K_2:
+                    print("Selecionou opção 2")
+                    state = GAME
+                    running = False
+                    pygame.mixer.music.pause()
+                    pygame.mixer.music.load('assets/Battle!.mp3')
+                    pygame.mixer.music.set_volume(0.4)
+                    pygame.mixer.music.play(loops=-1)
+                    assets['ok'].play()
+                elif event.key == pygame.K_3:
+                    print("Selecionou opção 3")
+                    state = GAME
+                    running = False
+                    pygame.mixer.music.pause()
+                    pygame.mixer.music.load('assets/Battle!.mp3')
+                    pygame.mixer.music.set_volume(0.4)
+                    pygame.mixer.music.play(loops=-1)
+                    assets['ok'].play()
+                elif event.key == pygame.K_4:
+                    print("Selecionou opção 4")
+                    state = GAME
+                    running = False
+                    pygame.mixer.music.pause()
+                    pygame.mixer.music.load('assets/Battle!.mp3')
+                    pygame.mixer.music.set_volume(0.4)
+                    pygame.mixer.music.play(loops=-1)
+                    assets['ok'].play()
+                elif event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
 
@@ -622,6 +652,7 @@ def selecao_screen(screen):
         pygame.display.flip()
 
     return state
+
 
 def gameover_screen(screen):
     # Variável para o ajuste de velocidade
@@ -664,13 +695,14 @@ def gameover_screen(screen):
 
     return state
 
+
 def game_screen(screen):
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
 
     # Carrega spritesheet
-    player_sheet = pygame.image.load(path.join(img_dir, 'froslass_idle.png')).convert_alpha()
-    #player_sheet = pygame.image.load(path.join(img_dir, 'tepig.png')).convert_alpha()
+    #player_sheet = pygame.image.load(path.join(img_dir, 'froslass_idle.png')).convert_alpha()
+    player_sheet = pygame.image.load(path.join(img_dir, 'tepig.png')).convert_alpha()
 
 
     # Cria Sprite do jogador
@@ -732,10 +764,11 @@ all_attacks = pygame.sprite.Group()
 groups['all_sprites'] = all_sprites
 groups['all_attacks'] = all_attacks
 assets = {}
+
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
 
-assets['tepig'] = pygame.image.load('assets/Tepig.png').convert_alpha()
+assets['tepig'] = pygame.image.load('assets/tepig.png').convert_alpha()
 assets['tepig'] = pygame.transform.scale(assets['tepig'], (largura_player, altura_player))
 
 assets['Meowth'] = {}
@@ -779,8 +812,8 @@ ultcd4 = assets['ultcd4']
 ultcd5 = assets['ultcd5']
 ultcd0 = assets['ultcd0']
 # Cria o player
-jogador = player(groups, assets['froslass'])
-# jogador = player(groups, assets['tepig'])
+#jogador = player(groups, assets['froslass'])
+jogador = player(groups, assets['tepig'])
 
 all_sprites.add(jogador)
 ataque_atual = golpe(assets,0,0)
