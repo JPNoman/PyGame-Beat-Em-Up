@@ -69,9 +69,9 @@ class player(pygame.sprite.Sprite):
         # Controle de ticks de animação: troca de imagem a cada self.frame_ticks milissegundos.
         self.frame_ticks = 150  # Prestar atenção nesse parametro, pode mudar a velocidade do jogo
 
-        # Só será possível atacar uma vez a cada 500 milissegundos
+        # Só será possível atacar uma vez a cada 600 milissegundos
         self.last_shot = pygame.time.get_ticks()
-        self.shoot_ticks = 500
+        self.shoot_ticks = 600
         self.last_ult = pygame.time.get_ticks()
         self.ult_ticks = 4000
 
@@ -184,7 +184,7 @@ class golpe(pygame.sprite.Sprite):
     def update(self):
         now = pygame.time.get_ticks()
         elapsed_ticks = now - self.last_shot
-        if elapsed_ticks > 200:
+        if elapsed_ticks > 130:
             self.kill()
         self.rect.x += self.speedx
         self.rect.y += self.speedy
@@ -365,6 +365,33 @@ class Explosion(pygame.sprite.Sprite):
 
             self.image = self.animation[self.frame]
             self.rect = self.image.get_rect(center=self.rect.center)
+
+class gastly(pygame.sprite.Sprite):
+    def __init__(self, assets):
+        # Construtor da classe mãe (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = assets['gastly']
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randint(0, altura)
+        self.rect.y = random.randint(-100, -50)
+        self.speedx = random.randint(-3, 3)
+        self.speedy = random.randint(2, 7)
+
+    def update(self):
+        # Atualizando a posição do meteoro
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+        # Se o meteoro passar do final da tela, volta para cima e sorteia
+        # novas posições e velocidades
+        if self.rect.top > largura or self.rect.right < 0 or self.rect.left > altura:
+            self.rect.x = random.randint(0, altura)
+            self.rect.y = random.randint(-100, -50)
+            self.speedx = random.randint(-3, 3)
+            self.speedy = random.randint(2, 9)
+
+
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
 # É necessário definir quantos sprites estão presentes em cada linha e coluna.
 # Essa função assume que os sprites no sprite sheet possuem todos o mesmo tamanho.
@@ -638,6 +665,8 @@ assets['hit'] = pygame.mixer.Sound('assets/hit.mp3')
 assets['lowhealth'] = pygame.mixer.Sound('assets/lowhealth.mp3')
 assets['vida'] = pygame.image.load('assets/vida.png').convert_alpha()
 assets['vida'] = pygame.transform.scale(assets['vida'], (70, 70))
+assets['gastly'] = pygame.image.load('assets/gastly.png').convert_alpha()
+assets['gastly'] = pygame.transform.scale(assets['gastly'], (50, 50))
 
 # Cria o player
 jogador = player(groups, assets['froslass'])
@@ -652,6 +681,12 @@ for _ in range(5):  # Ajusta a quantidade de inimigos
     new_enemy = Enemy(enemy_img, enemy_img, jogador)  # Passando a imagem do inimigo e o jogador
     all_sprites.add(new_enemy)
     enemies.add(new_enemy)
+
+hazards = pygame.sprite.Group()
+for i in range(6):
+    meteor = gastly(assets)
+    all_sprites.add(meteor)
+    hazards.add(meteor)
 
 # Loop de jogo
 
@@ -741,6 +776,23 @@ while game:
                 m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
                 all_sprites.add(m)
                 enemies.add(m)
+
+            if vidas == 1:
+                assets['lowhealth'].play()
+            if vidas < 1:
+                state = OVER
+        
+        hits = pygame.sprite.spritecollide(jogador, hazards, True)
+        if len(hits) > 0:
+            # Toca o som da colisão
+            assets['hit'].play()
+            vidas -= 1
+
+            # Respawn do hazard
+            for _ in range(len(hits)):
+                m = gastly(assets)
+                all_sprites.add(m)
+                hazards.add(m)
 
             if vidas == 1:
                 assets['lowhealth'].play()
