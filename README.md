@@ -26,3 +26,6 @@ CRIAR PULL REQUEST:
 Acesse o github e clique em "compare & pull request" e depois em "create pull request"
 
 OBS: sempre que for enviar arquivos, atualize seu codigo antes de enviar, para evitar conflitos.
+
+VÍDEO DO JOGO FUNCIONANDO POR COMPLETO
+https://youtu.be/KoCzM5Jpo_Y
