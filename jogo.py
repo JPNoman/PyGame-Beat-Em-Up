@@ -30,6 +30,7 @@ INSTR2 = 4
 INSTR3 = 6
 SELEC = 8
 OVER = 5
+Pokemon = None
 # Define algumas variáveis com as cores básicas
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -581,6 +582,8 @@ def instr_screen3(screen):
         pygame.display.flip()
     return state
 def selecao_screen(screen):
+    global jogador
+    global player_sheet 
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
 
@@ -614,7 +617,6 @@ def selecao_screen(screen):
                     pygame.mixer.music.play(loops=-1)
                     assets['ok'].play()
                 elif event.key == pygame.K_2:
-                    print("Selecionou opção 2")
                     state = GAME
                     running = False
                     pygame.mixer.music.pause()
@@ -694,53 +696,53 @@ def gameover_screen(screen):
         pygame.display.flip()
 
     return state
-
-
-def game_screen(screen):
+# Variável global para armazenar o sprite selecionado 
+# Atualizar o método selecao_screen para alterar o sprite do jogador
+def selecao_screen(screen):
+    global selected_sprite  # Usamos a variável global para armazenar a escolha
+    global jogador
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
 
-    # Carrega spritesheet
-    #player_sheet = pygame.image.load(path.join(img_dir, 'froslass_idle.png')).convert_alpha()
-    player_sheet = pygame.image.load(path.join(img_dir, 'tepig.png')).convert_alpha()
+    # Carrega o fundo da tela de seleção
+    selecao = pygame.image.load('assets/Selecao.png').convert()
+    selecao_rect = selecao.get_rect()
+    selecao = pygame.transform.scale(selecao, (altura, largura))
 
-
-    # Cria Sprite do jogador
-    player = player(player_sheet)
-    # Cria um grupo de todos os sprites e adiciona o jogador.
-    all_sprites = pygame.sprite.Group()
-    all_sprites.add(player)
-
-    PLAYING = 0
-    DONE = 1
-
-    state = PLAYING
-    while state != DONE:
-        
-        # Ajusta a velocidade do jogo.
+    running = True
+    state = SELEC  # Define o estado inicial para seleção
+    while running:
+        # Ajusta a velocidade do jogo
         clock.tick(fps)
-        
-        # Processa os eventos (mouse, teclado, botão, etc).
-        ## Eu ACHO que esse for é completamente desnecessário, mas vou deixar aí caso a gente precise no futuro
-        for event in pygame.event.get(): 
-            # Verifica se foi fechado.
-            if event.type == pygame.QUIT:
-                state = DONE
-                
-        # Depois de processar os eventos.
-        # Atualiza a acao de cada sprite. O grupo chama o método update() de cada Sprite dentre dele.
-        all_sprites.update()
-        
-        # A cada loop, redesenha o fundo e os sprites
-        screen.fill(0,0,0)
-        all_sprites.draw(screen)
-        
 
-        # Depois de desenhar tudo, inverte o display.
+        # Processa os eventos (mouse, teclado, botão, etc.)
+        for event in pygame.event.get():
+            # Verifica se foi fechado
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            # Verifica se alguma tecla selecionada
+            if event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_1:
+                    selected_sprite = 'tepig'  # Define o sprite selecionado
+                    state = GAME
+                    running = False
+                elif event.key == pygame.K_2:
+                    selected_sprite = 'froslass'  # Define o sprite selecionado
+                    state = GAME
+                    running = False
+                elif event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
+        # A cada loop, redesenha o fundo
+        screen.fill(BLACK)
+        screen.blit(selecao, selecao_rect)
+        # Depois de desenhar tudo, inverte o display
         pygame.display.flip()
+    return state
 
 # Abre a janela
-
 window = pygame.display.set_mode((altura, largura))
 pygame.display.set_caption('Pokémon Beat em Up')
 
@@ -812,7 +814,7 @@ ultcd4 = assets['ultcd4']
 ultcd5 = assets['ultcd5']
 ultcd0 = assets['ultcd0']
 # Cria o player
-#jogador = player(groups, assets['froslass'])
+
 jogador = player(groups, assets['tepig'])
 
 all_sprites.add(jogador)
@@ -846,7 +848,7 @@ while game:
     elif state == INSTR3:
         state = instr_screen3(window)
     elif state == SELEC:
-        state = selecao_screen(window)
+        state  = selecao_screen(window)
     elif state == GAME:
         clock.tick(fps)
         for event in pygame.event.get():
