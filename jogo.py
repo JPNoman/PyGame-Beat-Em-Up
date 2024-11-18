@@ -27,6 +27,7 @@ GAME = 1
 QUIT = 2
 INSTR = 3
 INSTR2 = 4
+INSTR3 = 6
 OVER = 5
 # Define algumas variáveis com as cores básicas
 WHITE = (255, 255, 255)
@@ -41,6 +42,10 @@ score = 0
 inim_add = 0
 reforços = 0
 vidas = 3
+
+last_ult = 0
+ult_ticks = 5000
+agora = 0
 
 # Define o jogador
 
@@ -73,7 +78,7 @@ class player(pygame.sprite.Sprite):
         self.last_shot = pygame.time.get_ticks()
         self.shoot_ticks = 500
         self.last_ult = pygame.time.get_ticks()
-        self.ult_ticks = 4000
+        self.ult_ticks = 5000
 
     def update(self):
         # Verifica o tick atual.
@@ -184,7 +189,7 @@ class golpe(pygame.sprite.Sprite):
     def update(self):
         now = pygame.time.get_ticks()
         elapsed_ticks = now - self.last_shot
-        if elapsed_ticks > 200:
+        if elapsed_ticks > 130:
             self.kill()
         self.rect.x += self.speedx
         self.rect.y += self.speedy
@@ -365,6 +370,33 @@ class Explosion(pygame.sprite.Sprite):
 
             self.image = self.animation[self.frame]
             self.rect = self.image.get_rect(center=self.rect.center)
+
+class gastly(pygame.sprite.Sprite):
+    def __init__(self, assets):
+        # Construtor da classe mãe (Sprite).
+        pygame.sprite.Sprite.__init__(self)
+
+        self.image = assets['gastly']
+        self.mask = pygame.mask.from_surface(self.image)
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randint(0, altura)
+        self.rect.y = random.randint(-100, -50)
+        self.speedx = random.randint(-3, 3)
+        self.speedy = random.randint(2, 7)
+
+    def update(self):
+        # Atualizando a posição do meteoro
+        self.rect.x += self.speedx
+        self.rect.y += self.speedy
+        # Se o meteoro passar do final da tela, volta para cima e sorteia
+        # novas posições e velocidades
+        if self.rect.top > largura or self.rect.right < 0 or self.rect.left > altura:
+            self.rect.x = random.randint(0, altura)
+            self.rect.y = random.randint(-100, -50)
+            self.speedx = random.randint(-3, 3)
+            self.speedy = random.randint(2, 9)
+
+
 # Recebe uma imagem de sprite sheet e retorna uma lista de imagens. 
 # É necessário definir quantos sprites estão presentes em cada linha e coluna.
 # Essa função assume que os sprites no sprite sheet possuem todos o mesmo tamanho.
@@ -395,7 +427,7 @@ def init_screen(screen):
     clock = pygame.time.Clock()
     
     # Carrega o fundo da tela inicial
-    inicial = pygame.image.load('assets/inspermonpng.png').convert()
+    inicial = pygame.image.load('assets/inspermon.png').convert()
     inicial_rect = inicial.get_rect()
     inicial = pygame.transform.scale(inicial, (altura, largura))
 
@@ -416,6 +448,7 @@ def init_screen(screen):
                 if event.key == pygame.K_SPACE:
                     state = INSTR
                     running = False
+                    assets['ok'].play()
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -455,6 +488,7 @@ def instr_screen(screen):
                 if event.key == pygame.K_SPACE:
                     state = INSTR2
                     running = False
+                    assets['ok'].play()
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -492,12 +526,9 @@ def instr_screen2(screen):
 
             if event.type == pygame.KEYUP:
                 if event.key == pygame.K_SPACE:
-                    state = GAME
+                    state = INSTR3
                     running = False
-                    pygame.mixer.music.pause()
-                    pygame.mixer.music.load('assets/Battle!.mp3')
-                    pygame.mixer.music.set_volume(0.4)
-                    pygame.mixer.music.play(loops=-1)
+                    assets['ok'].play()
                 if event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -505,6 +536,50 @@ def instr_screen2(screen):
         # A cada loop, redesenha o fundo e os sprites
         screen.fill(BLACK)
         screen.blit(instr2, instr2_rect)
+
+        # Depois de desenhar tudo, inverte o display.
+        pygame.display.flip()
+
+    return state
+
+def instr_screen3(screen):
+    # Variável para o ajuste de velocidade
+    clock = pygame.time.Clock()
+    
+    # Carrega o fundo da tela inicial
+    instr3 = pygame.image.load('assets/comojogar3.png').convert()
+    instr3_rect = instr3.get_rect()
+    instr3 = pygame.transform.scale(instr3, (altura, largura))
+
+    running = True
+    while running:
+
+        # Ajusta a velocidade do jogo.
+        clock.tick(fps)
+
+        # Processa os eventos (mouse, teclado, botão, etc).
+        for event in pygame.event.get():
+            # Verifica se foi fechado.
+            if event.type == pygame.QUIT:
+                state = QUIT
+                running = False
+
+            if event.type == pygame.KEYUP:
+                if event.key == pygame.K_SPACE:
+                    state = GAME
+                    running = False
+                    pygame.mixer.music.pause()
+                    pygame.mixer.music.load('assets/Battle!.mp3')
+                    pygame.mixer.music.set_volume(0.4)
+                    pygame.mixer.music.play(loops=-1)
+                    assets['ok'].play()
+                if event.key == pygame.K_ESCAPE:
+                    state = QUIT
+                    running = False
+
+        # A cada loop, redesenha o fundo e os sprites
+        screen.fill(BLACK)
+        screen.blit(instr3, instr3_rect)
 
         # Depois de desenhar tudo, inverte o display.
         pygame.display.flip()
@@ -626,7 +701,7 @@ assets['Meowth']["walk"] = pygame.transform.scale(assets['Meowth']["walk"], (lar
 assets['Meowth']["battle"] = pygame.image.load('assets/attack.png').convert_alpha()
 assets['Meowth']["battle"] = pygame.transform.scale(assets['Meowth']["battle"], (largura_inimigo, altura_inimigo)) # Tamanho do inimigo
 assets['iceslash'] = pygame.image.load('assets/iceslash.png').convert_alpha()
-assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player, altura_player))
+assets['iceslash'] = pygame.transform.scale(assets['iceslash'], (largura_player - 20, altura_player))
 assets['ice.mp3'] = pygame.mixer.Sound('assets/ice.mp3')
 assets['whoosh.mp3'] = pygame.mixer.Sound('assets/whoosh.mp3')
 assets['ultfroslass'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
@@ -638,7 +713,28 @@ assets['hit'] = pygame.mixer.Sound('assets/hit.mp3')
 assets['lowhealth'] = pygame.mixer.Sound('assets/lowhealth.mp3')
 assets['vida'] = pygame.image.load('assets/vida.png').convert_alpha()
 assets['vida'] = pygame.transform.scale(assets['vida'], (70, 70))
+assets['gastly'] = pygame.image.load('assets/gastly.png').convert_alpha()
+assets['gastly'] = pygame.transform.scale(assets['gastly'], (50, 50))
+assets['ok'] = pygame.mixer.Sound('assets/ok.mp3')
+assets['ultcd1'] = pygame.image.load('assets/ultcd1.png').convert_alpha()
+assets['ultcd1'] = pygame.transform.scale(assets['ultcd1'], (170, 170))
+assets['ultcd2'] = pygame.image.load('assets/ultcd2.png').convert_alpha()
+assets['ultcd2'] = pygame.transform.scale(assets['ultcd2'], (170, 170))
+assets['ultcd3'] = pygame.image.load('assets/ultcd3.png').convert_alpha()
+assets['ultcd3'] = pygame.transform.scale(assets['ultcd3'], (170, 170))
+assets['ultcd4'] = pygame.image.load('assets/ultcd4.png').convert_alpha()
+assets['ultcd4'] = pygame.transform.scale(assets['ultcd4'], (170, 170))
+assets['ultcd5'] = pygame.image.load('assets/ultcd5.png').convert_alpha()
+assets['ultcd5'] = pygame.transform.scale(assets['ultcd5'], (170, 170))
+assets['ultcd0'] = pygame.image.load('assets/ultfroslass.png').convert_alpha()
+assets['ultcd0'] = pygame.transform.scale(assets['ultcd0'], (170, 170))
 
+ultcd1 = assets['ultcd1']
+ultcd2 = assets['ultcd2']
+ultcd3 = assets['ultcd3']
+ultcd4 = assets['ultcd4']
+ultcd5 = assets['ultcd5']
+ultcd0 = assets['ultcd0']
 # Cria o player
 jogador = player(groups, assets['froslass'])
 all_sprites.add(jogador)
@@ -653,6 +749,12 @@ for _ in range(5):  # Ajusta a quantidade de inimigos
     all_sprites.add(new_enemy)
     enemies.add(new_enemy)
 
+hazards = pygame.sprite.Group()
+for i in range(1):
+    meteor = gastly(assets)
+    all_sprites.add(meteor)
+    hazards.add(meteor)
+
 # Loop de jogo
 
 game = True
@@ -663,6 +765,8 @@ while game:
         state = instr_screen(window)
     elif state == INSTR2:
         state = instr_screen2(window)
+    elif state == INSTR3:
+        state = instr_screen3(window)
     elif state == GAME:
         clock.tick(fps)
         for event in pygame.event.get():
@@ -689,6 +793,16 @@ while game:
                         ataque_atual.speedy += 6
                     if event.key == pygame.K_SPACE:
                         jogador.atacar()
+                    if event.key == pygame.K_q:
+                        jogador.ultar()
+                        agora = pygame.time.get_ticks()
+                        # Verifica quantos ticks se passaram desde o último ataque.
+                        elapsed_ticks = agora - last_ult
+
+                        # Se já pode atacar novamente...
+                        if elapsed_ticks > ult_ticks:
+                        # Marca o tick da nova imagem.
+                            last_ult = agora
                     if event.key == pygame.K_ESCAPE:
                         game = False
                 # Verifica se soltou alguma tecla.
@@ -706,8 +820,6 @@ while game:
                     if event.key == pygame.K_s:
                         jogador.speedy -= 6
                         ataque_atual.speedy -= 6
-                    if event.key == pygame.K_q:
-                            jogador.ultar()
                     if event.key == pygame.K_ESCAPE:
                             game = False
 
@@ -727,7 +839,7 @@ while game:
 
             # Atualiza score
             score += 100
-            inim_add = score // 1000
+            inim_add = score // 3000
                 
         # Verifica se houve colisão entre nave e meteoro
         hits = pygame.sprite.spritecollide(jogador, enemies, True)
@@ -747,12 +859,33 @@ while game:
             if vidas < 1:
                 state = OVER
         
+        hits = pygame.sprite.spritecollide(jogador, hazards, True)
+        if len(hits) > 0:
+            # Toca o som da colisão
+            assets['hit'].play()
+            vidas -= 1
+
+            # Respawn do hazard
+            for _ in range(len(hits)):
+                m = gastly(assets)
+                all_sprites.add(m)
+                hazards.add(m)
+
+            if vidas == 1:
+                assets['lowhealth'].play()
+            if vidas < 1:
+                state = OVER
+        
         # Adiciona mais inimigos ao longo do tempo
         if inim_add > reforços:
             reforços = inim_add
             m = Enemy(assets['Meowth'], assets['Meowth'], jogador)
             all_sprites.add(m)
             enemies.add(m)
+            meteor = gastly(assets)
+            all_sprites.add(meteor)
+            hazards.add(meteor)
+
         # ----- Gera saídas
         all_sprites.update()
         window.fill((0, 0, 0))  # Preenche com a cor preta 
@@ -776,6 +909,21 @@ while game:
         elif vidas == 1:
             window.blit(imgvida, (30, 30))
 
+        agora2 = pygame.time.get_ticks()
+        elapsed_ticks2 = agora2 - last_ult
+        if elapsed_ticks2 < 5000:
+            if elapsed_ticks2 < 1000:
+                window.blit(ultcd5, (1300, 30))
+            elif elapsed_ticks2 < 2000:
+                window.blit(ultcd4, (1300, 30))
+            elif elapsed_ticks2 < 3000:
+                window.blit(ultcd3, (1300, 30))
+            elif elapsed_ticks2 < 4000:
+                window.blit(ultcd2, (1300, 30))
+            elif elapsed_ticks2 < 5000:
+                window.blit(ultcd1, (1300, 30))
+        else:
+            window.blit(ultcd0, (1300, 30))
         pygame.display.update()  # Mostra o novo frame para o jogador
     elif state == OVER:
         pygame.mixer.music.pause() 
@@ -786,7 +934,7 @@ while game:
         state = gameover_screen(window)
         pygame.display.update()  # Mostra o novo frame para o jogador
     elif state == QUIT:
-        pygame.quit()
+        game = False
 
 # Fecha o jogo
 
