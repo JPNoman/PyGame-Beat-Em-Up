@@ -42,6 +42,7 @@ score = 0
 inim_add = 0
 reforços = 0
 vidas = 3
+
 last_ult = 0
 ult_ticks = 5000
 agora = 0
