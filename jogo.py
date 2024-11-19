@@ -685,6 +685,10 @@ def selecao_screen(screen):
                     state = GAME
                     escolha = 1
                     running = False
+                elif event.key == pygame.K_3:
+                    state = GAME
+                    escolha = 2
+                    running = False
                 elif event.key == pygame.K_4:
                     state = GAME
                     escolha = 3
@@ -726,6 +730,7 @@ groups['all_attacks'] = all_attacks
 assets = {}
 personagem = {0: 'tepig',
               1: 'froslass',
+              2: 'oshawott',
               3: 'zorua' }
 
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
@@ -736,6 +741,9 @@ assets['tepig'] = pygame.transform.scale(assets['tepig'], (largura_player, altur
 
 assets['zorua'] = pygame.image.load('assets/zorua.png').convert_alpha()
 assets['zorua'] = pygame.transform.scale(assets['zorua'], (largura_player, altura_player))
+
+assets['oshawott'] = pygame.image.load('assets/oshawott.png').convert_alpha()
+assets['oshawott'] = pygame.transform.scale(assets['oshawott'], (largura_player, altura_player))
 
 assets['Meowth'] = {}
 assets['Meowth']["walk"] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
