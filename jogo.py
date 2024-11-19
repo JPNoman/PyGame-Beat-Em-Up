@@ -604,57 +604,12 @@ def selecao_screen(screen):
             if event.type == pygame.QUIT:
                 state = QUIT
                 running = False
-
-            # Verifica se alguma tecla foi pressionada
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_1:
-                    personagem[0]
-                    state = GAME
-                    running = False
-                    pygame.mixer.music.pause()
-                    pygame.mixer.music.load('assets/Battle!.mp3')
-                    pygame.mixer.music.set_volume(0.4)
-                    pygame.mixer.music.play(loops=-1)
-                    assets['ok'].play()
-                elif event.key == pygame.K_2:
-                    state = GAME
-                    running = False
-                    pygame.mixer.music.pause()
-                    pygame.mixer.music.load('assets/Battle!.mp3')
-                    pygame.mixer.music.set_volume(0.4)
-                    pygame.mixer.music.play(loops=-1)
-                    assets['ok'].play()
-                elif event.key == pygame.K_3:
-                    print("Selecionou opção 3")
-                    state = GAME
-                    running = False
-                    pygame.mixer.music.pause()
-                    pygame.mixer.music.load('assets/Battle!.mp3')
-                    pygame.mixer.music.set_volume(0.4)
-                    pygame.mixer.music.play(loops=-1)
-                    assets['ok'].play()
-                elif event.key == pygame.K_4:
-                    print("Selecionou opção 4")
-                    state = GAME
-                    running = False
-                    pygame.mixer.music.pause()
-                    pygame.mixer.music.load('assets/Battle!.mp3')
-                    pygame.mixer.music.set_volume(0.4)
-                    pygame.mixer.music.play(loops=-1)
-                    assets['ok'].play()
-                elif event.key == pygame.K_ESCAPE:
-                    state = QUIT
-                    running = False
-
         # A cada loop, redesenha o fundo
         screen.fill(BLACK)
         screen.blit(selecao, selecao_rect)
-
         # Depois de desenhar tudo, inverte o display
         pygame.display.flip()
-
     return state
-
 
 def gameover_screen(screen):
     # Variável para o ajuste de velocidade
@@ -730,6 +685,10 @@ def selecao_screen(screen):
                     state = GAME
                     escolha = 1
                     running = False
+                elif event.key == pygame.K_4:
+                    state = GAME
+                    escolha = 3
+                    running = False
                     
                 elif event.key == pygame.K_ESCAPE:
                     state = QUIT
@@ -766,13 +725,17 @@ groups['all_sprites'] = all_sprites
 groups['all_attacks'] = all_attacks
 assets = {}
 personagem = {0: 'tepig',
-              1: 'froslass'}
+              1: 'froslass',
+              3: 'zorua' }
 
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
 
 assets['tepig'] = pygame.image.load('assets/tepig.png').convert_alpha()
 assets['tepig'] = pygame.transform.scale(assets['tepig'], (largura_player, altura_player))
+
+assets['zorua'] = pygame.image.load('assets/zorua.png').convert_alpha()
+assets['zorua'] = pygame.transform.scale(assets['zorua'], (largura_player, altura_player))
 
 assets['Meowth'] = {}
 assets['Meowth']["walk"] = pygame.image.load('assets/meowth_walk.png').convert_alpha()
