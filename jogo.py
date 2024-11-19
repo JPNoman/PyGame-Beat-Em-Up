@@ -608,7 +608,7 @@ def selecao_screen(screen):
             # Verifica se alguma tecla foi pressionada
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
-
+                    personagem[0]
                     state = GAME
                     running = False
                     pygame.mixer.music.pause()
@@ -699,8 +699,6 @@ def gameover_screen(screen):
 # Variável global para armazenar o sprite selecionado 
 # Atualizar o método selecao_screen para alterar o sprite do jogador
 def selecao_screen(screen):
-    global selected_sprite  # Usamos a variável global para armazenar a escolha
-    global jogador
     # Variável para o ajuste de velocidade
     clock = pygame.time.Clock()
 
@@ -725,13 +723,14 @@ def selecao_screen(screen):
             # Verifica se alguma tecla selecionada
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
-                    selected_sprite = 'tepig'  # Define o sprite selecionado
                     state = GAME
+                    escolha = 0
                     running = False
                 elif event.key == pygame.K_2:
-                    selected_sprite = 'froslass'  # Define o sprite selecionado
                     state = GAME
+                    escolha = 1
                     running = False
+                    
                 elif event.key == pygame.K_ESCAPE:
                     state = QUIT
                     running = False
@@ -740,7 +739,7 @@ def selecao_screen(screen):
         screen.blit(selecao, selecao_rect)
         # Depois de desenhar tudo, inverte o display
         pygame.display.flip()
-    return state
+    return state, escolha
 
 # Abre a janela
 window = pygame.display.set_mode((altura, largura))
@@ -766,6 +765,8 @@ all_attacks = pygame.sprite.Group()
 groups['all_sprites'] = all_sprites
 groups['all_attacks'] = all_attacks
 assets = {}
+personagem = {0: 'tepig',
+              1: 'froslass'}
 
 assets['froslass'] = pygame.image.load('assets/froslass_idle.png').convert_alpha()
 assets['froslass'] = pygame.transform.scale(assets['froslass'], (largura_player, altura_player)) # Tamanho do player
@@ -848,7 +849,16 @@ while game:
     elif state == INSTR3:
         state = instr_screen3(window)
     elif state == SELEC:
-        state  = selecao_screen(window)
+        state, escolha  = selecao_screen(window)
+        
+        if state == GAME:
+            all_sprites.remove(jogador)
+
+            jogador = player(groups, assets[personagem[escolha]])
+            all_sprites.add(jogador)
+        for inimigo in enemies:
+            inimigo.player = jogador
+
     elif state == GAME:
         clock.tick(fps)
         for event in pygame.event.get():
